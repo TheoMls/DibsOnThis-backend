@@ -24,6 +24,17 @@ dependencies {
     implementation(ktorLibs.server.statusPages)
     implementation(libs.logback.classic)
 
+    // Firebase Admin SDK
+    implementation("com.google.firebase:firebase-admin:9.10.0")
+
+    constraints {
+        implementation("com.fasterxml.jackson.core:jackson-core:2.18.9") {
+            because("Fixes vulnerability WS-2026-0003 flagged by Mend.io")
+        }
+        implementation("com.fasterxml.jackson.core:jackson-databind:2.18.9")
+        implementation("com.fasterxml.jackson.core:jackson-annotations:2.18.9")
+    }
+
     testImplementation(kotlin("test"))
     testImplementation(ktorLibs.server.testHost)
 }

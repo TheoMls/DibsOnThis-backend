@@ -19,3 +19,9 @@ gradle-app.setting
 .project
 # JDT-specific (Eclipse Java Development Tools)
 .classpath
+
+# Secret Firebase & environment key files
+firebase-key-dev.json
+firebase-key.json
+service-account*.json
+.env

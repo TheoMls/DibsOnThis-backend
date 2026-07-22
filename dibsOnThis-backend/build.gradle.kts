@@ -23,6 +23,10 @@ dependencies {
     implementation(ktorLibs.server.netty)
     implementation(ktorLibs.server.statusPages)
     implementation(libs.logback.classic)
+    implementation(ktorLibs.server.auth)
+    implementation("io.ktor:ktor-server-auth-jvm:3.5.0")
+    implementation("io.ktor:ktor-server-auth-jwt-jvm:3.5.0")
+    implementation("com.auth0:jwks-rsa:0.24.1")
 
     // Firebase Admin SDK
     implementation("com.google.firebase:firebase-admin:9.10.0")

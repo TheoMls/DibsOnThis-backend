@@ -1,4 +1,4 @@
-package com.theomls.dibs
+package com.theomls.dibs.application
 
 import io.ktor.http.*
 import io.ktor.server.application.*

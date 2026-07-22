@@ -8,11 +8,10 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class User(
     val id: String = "",                    // Firebase Auth UID
-    val displayName: String = "",                // User's full name or nickname
-    val email: String = "",                      // User's email address
-    val groupIds: List<String> = emptyList(),// List of Group IDs this user belongs to
-    val totalPoints: Int = 0,               // Cumulative score earned from completing tasks
-    val avatarUrl: String? = null,          // Optional profile picture URL
+    val displayName: String = "",
+    val email: String = "",
+    val groupIds: List<String> = emptyList(),
+    val totalPoints: Int = 0,
     val createdAt: Long = System.currentTimeMillis()
 )
 
@@ -24,7 +23,6 @@ data class User(
 data class CreateUserRequest(
     val displayName: String,
     val email: String,
-    val avatarUrl: String? = null
 )
 
 /**
@@ -33,15 +31,4 @@ data class CreateUserRequest(
 @Serializable
 data class UpdateUserRequest(
     val displayName: String? = null,
-    val avatarUrl: String? = null
 )
-
-fun CreateUserRequest.sanitizeAndValidate(): CreateUserRequest {
-    val cleanName = displayName.trim()
-    val cleanEmail = email.trim().lowercase()
-
-    require(cleanName.length in 2..50) { "Name must be 2-50 characters" }
-    require(cleanEmail.contains("@")) { "Invalid email format" }
-
-    return this.copy(displayName = cleanName, email = cleanEmail)
-}

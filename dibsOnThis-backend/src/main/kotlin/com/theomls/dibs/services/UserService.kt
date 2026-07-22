@@ -1,3 +1,5 @@
+@file:Suppress("MoveVariableDeclarationIntoWhen")
+
 package com.theomls.dibs.services
 
 import com.theomls.dibs.models.CreateUserRequest
@@ -9,7 +11,9 @@ import com.theomls.dibs.validation.ValidationResult
 class UserService(private val userRepository: UserRepository) {
 
     fun createUser(userId: String, request: CreateUserRequest): User {
-        val cleanRequest = when (val validation = UserValidator.validateCreateUser(request)) {
+        val validation = UserValidator.validateCreateUser(request)
+
+        val cleanRequest = when (validation) {
             is ValidationResult.Success -> validation.value
             is ValidationResult.Failure -> throw IllegalArgumentException(validation.message)
         }

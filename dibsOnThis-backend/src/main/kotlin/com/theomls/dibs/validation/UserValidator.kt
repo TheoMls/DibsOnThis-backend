@@ -3,14 +3,6 @@ package com.theomls.dibs.validation
 import com.theomls.dibs.models.CreateUserRequest
 
 /**
- * Result of a validation operation.
- */
-sealed class ValidationResult<out T> {
-    data class Success<T>(val value: T) : ValidationResult<T>()
-    data class Failure(val message: String) : ValidationResult<Nothing>()
-}
-
-/**
  * Dedicated validator for User-related requests.
  */
 object UserValidator {

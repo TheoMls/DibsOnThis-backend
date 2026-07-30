@@ -2,10 +2,9 @@ package com.theomls.dibs.validation
 
 import com.theomls.dibs.models.CreateUserRequest
 
-/**
- * Dedicated validator for User-related requests.
- */
 object UserValidator {
+    
+    private val EMAIL_REGEX = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$".toRegex()
 
     /**
      * Sanitizes and validates the [CreateUserRequest].
@@ -15,11 +14,11 @@ object UserValidator {
         val cleanName = request.displayName.trim()
         val cleanEmail = request.email.trim().lowercase()
 
-        if (cleanName.length !in 2..50) {
-            return ValidationResult.Failure("Name must be 2-50 characters")
+        if (cleanName.length !in 3..20) {
+            return ValidationResult.Failure("Name must be 3-20 characters")
         }
 
-        if (!cleanEmail.contains("@")) {
+        if (!EMAIL_REGEX.matches(cleanEmail)) {
             return ValidationResult.Failure("Invalid email format")
         }
 

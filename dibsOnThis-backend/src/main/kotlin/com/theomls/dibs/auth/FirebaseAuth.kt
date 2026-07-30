@@ -12,9 +12,9 @@ fun Application.configureAuthentication() {
     val issuer = "https://securetoken.google.com/dibs-on-this"
 
     // Fixed the deprecated string-to-URL constructor using URI
-    val jwkUrl = URI("https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com").toURL()
+    val jwkUrl: java.net.URL = URI("https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com").toURL()
 
-    val jwkProvider = JwkProviderBuilder(jwkUrl)
+    val jwkProvider: com.auth0.jwk.JwkProvider = JwkProviderBuilder(jwkUrl)
         .cached(10, 24, TimeUnit.HOURS)
         .rateLimited(10, 1, TimeUnit.MINUTES)
         .build()

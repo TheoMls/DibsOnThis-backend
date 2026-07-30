@@ -1,5 +1,3 @@
-@file:Suppress("MoveVariableDeclarationIntoWhen")
-
 package com.theomls.dibs.services
 
 import com.theomls.dibs.models.CreateUserRequest
@@ -10,7 +8,7 @@ import com.theomls.dibs.validation.ValidationResult
 
 class UserService(private val userRepository: UserRepository) {
 
-    fun createUser(userId: String, request: CreateUserRequest): User {
+    suspend fun createUser(userId: String, request: CreateUserRequest): User {
         val validation = UserValidator.validateCreateUser(request)
 
         val cleanRequest = when (validation) {
@@ -19,8 +17,7 @@ class UserService(private val userRepository: UserRepository) {
         }
 
         // Business Rule: Check if the user already has a profile registered
-        val existingUser = userRepository.findUserById(userId)
-        if (existingUser != null) {
+        if (userRepository.existsById(userId)) {
             throw IllegalArgumentException("User profile already exists!")
         }
 
@@ -34,7 +31,6 @@ class UserService(private val userRepository: UserRepository) {
             createdAt = System.currentTimeMillis()
         )
 
-        // CALL THE NEXT LAYER -> UserRepository
         userRepository.saveUser(newUser)
 
         return newUser

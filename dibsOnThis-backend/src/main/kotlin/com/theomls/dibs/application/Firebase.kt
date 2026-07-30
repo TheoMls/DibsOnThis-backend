@@ -15,7 +15,7 @@ fun Application.configureFirebase() {
         return
     }
 
-    val options = FirebaseOptions.builder()
+    val options: com.google.firebase.FirebaseOptions = FirebaseOptions.builder()
         .setCredentials(GoogleCredentials.fromStream(serviceAccount))
         .build()
 

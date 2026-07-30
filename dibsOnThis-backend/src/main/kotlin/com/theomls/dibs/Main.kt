@@ -1,8 +1,11 @@
 package com.theomls.dibs
 
 import com.theomls.dibs.auth.configureAuthentication
+import com.theomls.dibs.repositories.GroupRepository
 import com.theomls.dibs.repositories.UserRepository
+import com.theomls.dibs.routes.groupRoutes
 import com.theomls.dibs.routes.userRoutes
+import com.theomls.dibs.services.GroupService
 import com.theomls.dibs.services.UserService
 import io.ktor.server.application.*
 import io.ktor.server.netty.EngineMain
@@ -17,7 +20,7 @@ fun main(args: Array<String>) {
  * Ktor automatically calls this function when starting up due to application.yaml config.
  */
 fun Application.module() {
-    val firestore = com.google.firebase.cloud.FirestoreClient.getFirestore()
+    val firestore: com.google.cloud.firestore.Firestore = com.google.firebase.cloud.FirestoreClient.getFirestore()
 
     // Configure Auth plugin
     configureAuthentication()
@@ -26,9 +29,13 @@ fun Application.module() {
     val userRepository = UserRepository(firestore)
     val userService = UserService(userRepository)
 
+    val groupRepository = GroupRepository(firestore)
+    val groupService = GroupService(groupRepository, userRepository)
+
     // 3. Register your routes into Ktor's routing engine
     routing {
         get("/") { call.respondText("DibsOnThis Server Running!") }
         userRoutes(userService)
+        groupRoutes(groupService)
     }
 }

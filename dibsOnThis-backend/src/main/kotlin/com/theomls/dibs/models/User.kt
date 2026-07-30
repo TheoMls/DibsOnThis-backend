@@ -2,9 +2,6 @@ package com.theomls.dibs.models
 
 import kotlinx.serialization.Serializable
 
-/**
- * Core User entity representing a registered user in the dibsOnThis app.
- */
 @Serializable
 data class User(
     val id: String = "",                    // Firebase Auth UID
@@ -15,19 +12,13 @@ data class User(
     val createdAt: Long = System.currentTimeMillis()
 )
 
-/**
- * Data Transfer Object (DTO) sent by the client upon first login/signup
- * to register user details in Firestore.
- */
+//DTOs
 @Serializable
 data class CreateUserRequest(
     val displayName: String,
     val email: String,
 )
 
-/**
- * DTO sent when a user updates their profile details.
- */
 @Serializable
 data class UpdateUserRequest(
     val displayName: String? = null,

@@ -34,7 +34,7 @@ class GroupService(
         return code
     }
 
-    private fun generateInviteCode(length: Int = 8): String {
+    private fun generateInviteCode(length: Int = GroupConstants.INVITE_CODE_LENGTH): String {
         return (1..length)
             .map { charset[secureRandom.nextInt(charset.length)] }
             .joinToString("")
@@ -58,7 +58,7 @@ class GroupService(
         )
 
         val inviteCode = generateUnique(
-            generator = { generateInviteCode(8) },
+            generator = { generateInviteCode() },
             existsChecker = groupRepository::existsByInviteCode,
             whatUnique = "Invite Code"
         )

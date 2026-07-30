@@ -21,3 +21,7 @@ data class CreateGroupRequest(
 data class JoinGroupRequest(
     val inviteCode: String
 )
+
+object GroupConstants {
+    const val INVITE_CODE_LENGTH = 8
+}

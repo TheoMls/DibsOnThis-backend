@@ -12,7 +12,7 @@ fun Route.groupRoutes(groupService: GroupService) {
     post("/groups") {
         val request = call.receive<CreateGroupRequest>()
         // Mock userId
-        val userId = "test-user-id-123"
+        val userId = "test-user-id-1"
         val group = groupService.createGroup(userId, request)
         call.respond(HttpStatusCode.Created, group)
     }
@@ -20,7 +20,7 @@ fun Route.groupRoutes(groupService: GroupService) {
     post("/groups/join") {
         val request = call.receive<JoinGroupRequest>()
         // Mock userId
-        val userId = "test-user-id-123"
+        val userId = "test-user-id-1"
         val group = groupService.joinGroup(userId, request)
         call.respond(HttpStatusCode.OK, group)
     }

@@ -93,7 +93,7 @@ class GroupServiceTest {
     @Test
     fun `joinGroup should succeed with valid invite code`() = runBlocking {
         val userId = "user123"
-        val inviteCode = "ABC123"
+        val inviteCode = "A".repeat(GroupConstants.INVITE_CODE_LENGTH)
         val group = Group(groupId = "group123", name = "Test Group", inviteCode = inviteCode)
         mockGroupRepo.groupToReturnByInviteCode = group
         mockGroupRepo.memberAddedGroup = group.copy(memberIds = listOf(userId))
@@ -107,10 +107,11 @@ class GroupServiceTest {
     @Test
     fun `joinGroup should throw if group not found`() {
         runBlocking {
+            val inviteCode = "A".repeat(GroupConstants.INVITE_CODE_LENGTH)
             mockGroupRepo.groupToReturnByInviteCode = null
 
             assertFailsWith<IllegalArgumentException> {
-                groupService.joinGroup("user123", JoinGroupRequest("NONONO"))
+                groupService.joinGroup("user123", JoinGroupRequest(inviteCode))
             }
         }
     }

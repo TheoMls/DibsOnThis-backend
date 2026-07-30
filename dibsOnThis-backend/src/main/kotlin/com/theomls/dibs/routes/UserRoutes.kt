@@ -22,7 +22,7 @@ fun Route.userRoutes(userService: UserService) {
 //            val userId = principal.uid
 
             // Use a mock ID for testing right now
-            val userId = "test-user-id-123"
+            val userId = "test-user-id-1"
 
             val createdUser = userService.createUser(userId, request)
             call.respond(HttpStatusCode.Created, createdUser)

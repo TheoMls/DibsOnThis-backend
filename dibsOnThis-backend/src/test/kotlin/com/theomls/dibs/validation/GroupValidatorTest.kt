@@ -43,16 +43,18 @@ class GroupValidatorTest {
 
     @Test
     fun `test validateJoinGroup with valid code`() {
-        val request = JoinGroupRequest(inviteCode = "ABC123")
+        val validCode = "A".repeat(GroupConstants.INVITE_CODE_LENGTH)
+        val request = JoinGroupRequest(inviteCode = validCode)
         val result = GroupValidator.validateJoinGroup(request)
 
         assertTrue(result is ValidationResult.Success)
-        assertEquals("ABC123", result.value.inviteCode)
+        assertEquals(validCode, result.value.inviteCode)
     }
 
     @Test
     fun `test validateJoinGroup with invalid code`() {
-        val request = JoinGroupRequest(inviteCode = "ABC12")
+        val invalidCode = "A".repeat(GroupConstants.INVITE_CODE_LENGTH - 1)
+        val request = JoinGroupRequest(inviteCode = invalidCode)
         val result = GroupValidator.validateJoinGroup(request)
 
         assertTrue(result is ValidationResult.Failure)

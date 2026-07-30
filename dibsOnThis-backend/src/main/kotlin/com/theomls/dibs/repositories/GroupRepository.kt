@@ -8,8 +8,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 open class GroupRepository(db: Firestore) {
-    protected open val groupsCollection: CollectionReference = db.collection("groups")
-    protected open val usersCollection: CollectionReference = db.collection("users")
+    protected open val groupsCollection: CollectionReference by lazy { db.collection("groups") }
+    protected open val usersCollection: CollectionReference by lazy { db.collection("users") }
     protected open val database = db
 
     open suspend fun createGroup(group: Group, userId: String): Group = withContext(Dispatchers.IO) {

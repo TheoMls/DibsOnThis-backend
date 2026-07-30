@@ -3,8 +3,8 @@ package com.theomls.dibs.validation
 import com.theomls.dibs.models.*
 
 object GroupValidator {
-
-    private val INVITE_CODE_REGEX = "^[A-Z0-9]{6}$".toRegex()
+    
+    private val INVITE_CODE_REGEX = "^[A-Z0-9]{${GroupConstants.INVITE_CODE_LENGTH}}$".toRegex()
 
     /**
      * Sanitizes and validates the [CreateGroupRequest].

@@ -13,7 +13,7 @@ class GroupService(
     private val userRepository: UserRepository
 ) {
     private val secureRandom = SecureRandom()
-    private val charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+    private val charset = GroupConstants.INVITE_CODE_CHARSET
 
     private suspend fun generateUnique(
         generator: () -> String,
@@ -27,7 +27,7 @@ class GroupService(
             code = generator()
             exists = existsChecker(code)
             tries++
-            if (tries >= 50) {
+            if (tries >= GroupConstants.UNIQUE_GENERATION_MAX_ATTEMPTS) {
                 throw IllegalStateException("Failed to generate unique $whatUnique after $tries attempts.")
             }
         } while (exists)
@@ -89,5 +89,27 @@ class GroupService(
             ?: throw IllegalArgumentException("Group not found with invite code: ${cleanRequest.inviteCode}")
 
         return groupRepository.addMemberToGroup(group.groupId, userId)
+    }
+
+    suspend fun leaveGroup(userId: String, groupId: String): LeaveGroupResponse {
+        if (!userRepository.existsById(userId)) {
+            throw IllegalArgumentException("User does not exist")
+        }
+
+        if (!groupRepository.existsById(groupId)) {
+            throw IllegalArgumentException("Group does not exist")
+        }
+
+        val groupWasDeleted = groupRepository.removeMemberFromGroup(groupId, userId)
+
+        return LeaveGroupResponse(
+            groupId = groupId,
+            deleted = groupWasDeleted
+        )
+    }
+
+    suspend fun getGroupById(groupId: String): Group {
+        return groupRepository.getGroupById(groupId)
+            ?: throw IllegalArgumentException("Group not found with ID: $groupId")
     }
 }

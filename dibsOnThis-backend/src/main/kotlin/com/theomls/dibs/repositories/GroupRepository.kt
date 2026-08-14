@@ -4,6 +4,7 @@ import com.google.cloud.firestore.CollectionReference
 import com.google.cloud.firestore.Firestore
 import com.theomls.dibs.models.Group
 import com.theomls.dibs.models.User
+import com.theomls.dibs.models.UserConstants
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -35,6 +36,9 @@ open class GroupRepository(db: Firestore) {
                 val updatedGroupIds = if (user.groupIds.contains(group.groupId)) {
                     user.groupIds
                 } else {
+                    if (user.groupIds.size >= UserConstants.MAX_GROUP_MEMBERSHIPS) {
+                        throw IllegalArgumentException("User cannot join more than ${UserConstants.MAX_GROUP_MEMBERSHIPS} groups.")
+                    }
                     user.groupIds + group.groupId
                 }
 
@@ -112,8 +116,12 @@ open class GroupRepository(db: Firestore) {
                 val user = userSnapshot.toObject(User::class.java)
                     ?: throw IllegalArgumentException("User data is invalid")
 
+                if (!user.groupIds.contains(groupId) && user.groupIds.size >= UserConstants.MAX_GROUP_MEMBERSHIPS) {
+                    throw IllegalArgumentException("User cannot join more than ${UserConstants.MAX_GROUP_MEMBERSHIPS} groups.")
+                }
+
                 val updatedGroup = if (group.memberIds.contains(userId)) {
-                    group
+                    return@runTransaction group
                 } else {
                     if (group.memberIds.size >= group.maxGroupSize) {
                         throw IllegalArgumentException("Group is full.")
@@ -135,6 +143,53 @@ open class GroupRepository(db: Firestore) {
             throw e
         } catch (e: Exception) {
             throw RuntimeException("Failed to add member to group and user", e)
+        }
+    }
+
+    open suspend fun removeMemberFromGroup(groupId: String, userId: String): Boolean = withContext(Dispatchers.IO) {
+        try {
+            val groupRef = groupsCollection.document(groupId)
+            val userRef = usersCollection.document(userId)
+
+            database.runTransaction { transaction ->
+                val groupSnapshot = transaction.get(groupRef).get()
+                if (!groupSnapshot.exists()) {
+                    throw IllegalArgumentException("Group does not exist")
+                }
+
+                val group = groupSnapshot.toObject(Group::class.java)
+                    ?: throw IllegalArgumentException("Group data is invalid")
+
+                val userSnapshot = transaction.get(userRef).get()
+                if (!userSnapshot.exists()) {
+                    throw IllegalArgumentException("User does not exist")
+                }
+
+                val user = userSnapshot.toObject(User::class.java)
+                    ?: throw IllegalArgumentException("User data is invalid")
+
+                if (!group.memberIds.contains(userId)) {
+                    throw IllegalArgumentException("User is not a member of this group")
+                }
+
+                val updatedMemberIds = group.memberIds.filterNot { it == userId }
+                val updatedGroupIds = user.groupIds.filterNot { it == groupId }
+                val groupWasDeleted = updatedMemberIds.isEmpty()
+
+                if (groupWasDeleted) {
+                    transaction.delete(groupRef)
+                } else {
+                    transaction.update(groupRef, "memberIds", updatedMemberIds)
+                }
+
+                transaction.update(userRef, "groupIds", updatedGroupIds)
+
+                return@runTransaction groupWasDeleted
+            }.get()
+        } catch (e: IllegalArgumentException) {
+            throw e
+        } catch (e: Exception) {
+            throw RuntimeException("Failed to remove member from group", e)
         }
     }
 }

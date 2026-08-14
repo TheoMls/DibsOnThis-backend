@@ -17,8 +17,11 @@ object GroupValidator {
             return ValidationResult.Failure("Group name cannot be blank.")
         }
 
-        if (cleanName.length !in 3..20) {
-            return ValidationResult.Failure("Group name must be between 3 and 20 characters.")
+        val minNameLen = GroupConstants.MIN_NAME_LENGTH
+        val maxNameLen = GroupConstants.MAX_NAME_LENGTH
+
+        if (cleanName.length !in minNameLen..maxNameLen) {
+            return ValidationResult.Failure("Group name must be between $minNameLen and $maxNameLen characters.")
         }
 
         return ValidationResult.Success(

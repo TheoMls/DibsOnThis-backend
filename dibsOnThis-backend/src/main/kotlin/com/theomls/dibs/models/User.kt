@@ -5,21 +5,29 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class User(
     val id: String = "",                    // Firebase Auth UID
-    val displayName: String = "",
-    val email: String = "",
+    val username: String,
+    val email: String,
     val groupIds: List<String> = emptyList(),
     val totalPoints: Int = 0,
     val createdAt: Long = System.currentTimeMillis()
 )
 
-//DTOs
+// DTOs
 @Serializable
 data class CreateUserRequest(
-    val displayName: String,
+    val username: String,
     val email: String,
 )
 
 @Serializable
 data class UpdateUserRequest(
-    val displayName: String? = null,
+    val username: String? = null,
 )
+
+// Constants
+object UserConstants {
+    const val MIN_USERNAME_LENGTH = 2
+    const val MAX_USERNAME_LENGTH = 20
+
+    const val MAX_GROUP_MEMBERSHIPS = 20
+}

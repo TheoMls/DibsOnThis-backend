@@ -1,6 +1,6 @@
 package com.theomls.dibs.validation
 
-import com.theomls.dibs.models.CreateUserRequest
+import com.theomls.dibs.models.*
 
 object UserValidator {
     
@@ -11,11 +11,14 @@ object UserValidator {
      * Returns a [ValidationResult] containing either the sanitized request or an error message.
      */
     fun validateCreateUser(request: CreateUserRequest): ValidationResult<CreateUserRequest> {
-        val cleanName = request.displayName.trim()
+        val cleanName = request.username.trim()
         val cleanEmail = request.email.trim().lowercase()
 
-        if (cleanName.length !in 3..20) {
-            return ValidationResult.Failure("Name must be 3-20 characters")
+        val minUsernameLen = UserConstants.MIN_USERNAME_LENGTH
+        val maxUsernameLen = UserConstants.MAX_USERNAME_LENGTH
+        
+        if (cleanName.length !in minUsernameLen..maxUsernameLen) {
+            return ValidationResult.Failure("Name must be $minUsernameLen-$maxUsernameLen characters")
         }
 
         if (!EMAIL_REGEX.matches(cleanEmail)) {
@@ -24,7 +27,7 @@ object UserValidator {
 
         return ValidationResult.Success(
             request.copy(
-                displayName = cleanName,
+                username = cleanName,
                 email = cleanEmail
             )
         )

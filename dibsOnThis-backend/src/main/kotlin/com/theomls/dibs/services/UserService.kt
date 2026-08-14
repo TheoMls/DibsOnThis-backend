@@ -24,7 +24,7 @@ class UserService(private val userRepository: UserRepository) {
         // Combine clean input with server rules (points = 0, current timestamp)
         val newUser = User(
             id = userId,
-            displayName = cleanRequest.displayName,
+            username = cleanRequest.username,
             email = cleanRequest.email,
             totalPoints = 0,
             groupIds = emptyList(),
@@ -34,5 +34,10 @@ class UserService(private val userRepository: UserRepository) {
         userRepository.saveUser(newUser)
 
         return newUser
+    }
+
+    suspend fun getUserById(userId: String): User {
+        return userRepository.getUserById(userId)
+            ?: throw IllegalArgumentException("User does not exist")
     }
 }

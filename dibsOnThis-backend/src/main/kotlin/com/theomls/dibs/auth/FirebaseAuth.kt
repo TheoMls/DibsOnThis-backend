@@ -9,7 +9,7 @@ import java.util.concurrent.TimeUnit
 
 fun Application.configureAuthentication() {
     // Replace "dibs-on-this" with your actual Firebase Project ID
-    val issuer = "https://securetoken.google.com/dibs-on-this"
+    val issuer = "https://securetoken.google.com/dibsonthis-891e1"
 
     // Fixed the deprecated string-to-URL constructor using URI
     val jwkUrl: java.net.URL = URI("https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com").toURL()

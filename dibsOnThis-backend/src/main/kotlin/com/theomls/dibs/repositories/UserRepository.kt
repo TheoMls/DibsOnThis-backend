@@ -4,6 +4,7 @@ import com.google.cloud.firestore.DocumentSnapshot
 import com.google.cloud.firestore.Firestore
 import com.google.cloud.firestore.WriteResult
 import com.theomls.dibs.models.User
+import com.theomls.dibs.models.UserConstants
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -50,6 +51,10 @@ open class UserRepository(db: Firestore) {
 
                 if (user.groupIds.contains(groupId)) {
                     return@runTransaction user
+                }
+
+                if (user.groupIds.size >= UserConstants.MAX_GROUP_MEMBERSHIPS) {
+                    throw IllegalArgumentException("User cannot join more than ${UserConstants.MAX_GROUP_MEMBERSHIPS} groups.")
                 }
 
                 val updatedGroupIds = user.groupIds + groupId

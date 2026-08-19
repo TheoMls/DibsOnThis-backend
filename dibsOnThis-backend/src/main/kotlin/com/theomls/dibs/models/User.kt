@@ -5,8 +5,8 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class User(
     val id: String = "",                    // Firebase Auth UID
-    val username: String,
-    val email: String,
+    val username: String = "",
+    val email: String = "",
     val groupIds: List<String> = emptyList(),
     val totalPoints: Int = 0,
     val createdAt: Long = System.currentTimeMillis()

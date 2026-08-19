@@ -4,6 +4,7 @@ import com.theomls.dibs.auth.configureAuthentication
 import com.theomls.dibs.repositories.GroupRepository
 import com.theomls.dibs.repositories.UserRepository
 import com.theomls.dibs.routes.groupRoutes
+import com.theomls.dibs.routes.taskRoutes
 import com.theomls.dibs.routes.userRoutes
 import com.theomls.dibs.services.GroupService
 import com.theomls.dibs.services.UserService
@@ -37,5 +38,6 @@ fun Application.module() {
         get("/") { call.respondText("DibsOnThis Server Running!") }
         userRoutes(userService)
         groupRoutes(groupService)
+        taskRoutes()
     }
 }

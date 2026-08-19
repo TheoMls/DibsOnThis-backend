@@ -5,6 +5,7 @@ import com.theomls.dibs.models.User
 import com.theomls.dibs.repositories.UserRepository
 import com.theomls.dibs.validation.UserValidator
 import com.theomls.dibs.validation.ValidationResult
+import io.ktor.server.plugins.NotFoundException
 
 class UserService(private val userRepository: UserRepository) {
 
@@ -38,6 +39,6 @@ class UserService(private val userRepository: UserRepository) {
 
     suspend fun getUserById(userId: String): User {
         return userRepository.getUserById(userId)
-            ?: throw IllegalArgumentException("User does not exist")
+            ?: throw NotFoundException("User does not exist")
     }
 }

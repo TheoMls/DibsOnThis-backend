@@ -5,6 +5,7 @@ import com.theomls.dibs.repositories.GroupRepository
 import com.theomls.dibs.repositories.UserRepository
 import com.theomls.dibs.validation.GroupValidator
 import com.theomls.dibs.validation.ValidationResult
+import io.ktor.server.plugins.NotFoundException
 import java.security.SecureRandom
 import java.util.*
 
@@ -86,7 +87,7 @@ class GroupService(
         }
 
         val group = groupRepository.getGroupByInviteCode(cleanRequest.inviteCode)
-            ?: throw IllegalArgumentException("Group not found with invite code: ${cleanRequest.inviteCode}")
+            ?: throw NotFoundException("Group not found with invite code: ${cleanRequest.inviteCode}")
 
         return groupRepository.addMemberToGroup(group.groupId, userId)
     }
@@ -97,7 +98,7 @@ class GroupService(
         }
 
         if (!groupRepository.existsById(groupId)) {
-            throw IllegalArgumentException("Group does not exist")
+            throw NotFoundException("Group does not exist")
         }
 
         val groupWasDeleted = groupRepository.removeMemberFromGroup(groupId, userId)
@@ -110,6 +111,6 @@ class GroupService(
 
     suspend fun getGroupById(groupId: String): Group {
         return groupRepository.getGroupById(groupId)
-            ?: throw IllegalArgumentException("Group not found with ID: $groupId")
+            ?: throw NotFoundException("Group not found with ID: $groupId")
     }
 }

@@ -11,14 +11,14 @@ enum class TaskStatus {
 
 @Serializable
 data class Task(
-    val taskId: String,
-    val groupId: String,
-    val title: String,
+    val taskId: String = "",
+    val groupId: String = "",
+    val title: String = "",
     val description: String = "",
     val points: Int = 1,
     val status: TaskStatus = TaskStatus.PENDING,
     val assignedToUserId: String? = null, // null if unclaimed
-    val createdByUserId: String
+    val createdByUserId: String = ""
 )
 
 // DTOs

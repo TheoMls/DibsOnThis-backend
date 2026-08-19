@@ -12,58 +12,42 @@ open class UserRepository(db: Firestore) {
     protected open val database = db
 
     open suspend fun saveUser(user: User): WriteResult = withContext(Dispatchers.IO) {
-        try {
-            database.collection("users")
-                .document(user.id)
-                .set(user)
-                .get()
-        } catch (e: Exception) {
-            throw RuntimeException("Failed to save user", e)
-        }
+        database.collection("users")
+            .document(user.id)
+            .set(user)
+            .get()
     }
 
     open suspend fun getUserById(id: String): User? = withContext(Dispatchers.IO) {
-        try {
-            val snapshot: DocumentSnapshot = database.collection("users").document(id).get().get()
-            return@withContext if (snapshot.exists()) snapshot.toObject(User::class.java) else null
-        } catch (e: Exception) {
-            throw RuntimeException("Failed to find user by id", e)
-        }
+        val snapshot: DocumentSnapshot = database.collection("users").document(id).get().get()
+        return@withContext if (snapshot.exists()) snapshot.toObject(User::class.java) else null
     }
 
     open suspend fun existsById(id: String): Boolean = withContext(Dispatchers.IO) {
-        try {
-            database.collection("users").document(id).get().get().exists()
-        } catch (e: Exception) {
-            throw RuntimeException("Failed to check if user exists", e)
-        }
+        database.collection("users").document(id).get().get().exists()
     }
 
     open suspend fun addGroupToUser(userId: String, groupId: String): User? = withContext(Dispatchers.IO) {
-        try {
-            val userRef = database.collection("users").document(userId)
+        val userRef = database.collection("users").document(userId)
 
-            database.runTransaction { transaction ->
-                val snapshot = transaction.get(userRef).get()
-                if (!snapshot.exists()) return@runTransaction null
+        database.runTransaction { transaction ->
+            val snapshot = transaction.get(userRef).get()
+            if (!snapshot.exists()) return@runTransaction null
 
-                val user = snapshot.toObject(User::class.java) ?: return@runTransaction null
+            val user = snapshot.toObject(User::class.java) ?: return@runTransaction null
 
-                if (user.groupIds.contains(groupId)) {
-                    return@runTransaction user
-                }
+            if (user.groupIds.contains(groupId)) {
+                return@runTransaction user
+            }
 
-                if (user.groupIds.size >= UserConstants.MAX_GROUP_MEMBERSHIPS) {
-                    throw IllegalArgumentException("User cannot join more than ${UserConstants.MAX_GROUP_MEMBERSHIPS} groups.")
-                }
+            if (user.groupIds.size >= UserConstants.MAX_GROUP_MEMBERSHIPS) {
+                throw IllegalArgumentException("User cannot join more than ${UserConstants.MAX_GROUP_MEMBERSHIPS} groups.")
+            }
 
-                val updatedGroupIds = user.groupIds + groupId
-                transaction.update(userRef, "groupIds", updatedGroupIds)
+            val updatedGroupIds = user.groupIds + groupId
+            transaction.update(userRef, "groupIds", updatedGroupIds)
 
-                return@runTransaction user.copy(groupIds = updatedGroupIds)
-            }.get()
-        } catch (e: Exception) {
-            throw RuntimeException("Failed to add group to user", e)
-        }
+            return@runTransaction user.copy(groupIds = updatedGroupIds)
+        }.get()
     }
 }

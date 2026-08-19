@@ -4,9 +4,9 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class Group(
-    val groupId: String,
-    val name: String,
-    val inviteCode: String,
+    val groupId: String = "",
+    val name: String = "",
+    val inviteCode: String = "",
     val memberIds: List<String> = emptyList(),
     val maxGroupSize: Int = GroupConstants.MAX_GROUP_SIZE
 )

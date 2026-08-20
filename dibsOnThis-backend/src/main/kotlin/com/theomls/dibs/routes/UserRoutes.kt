@@ -7,19 +7,14 @@ import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
-import io.ktor.server.auth.principal
-import com.theomls.dibs.auth.FirebaseUserPrincipal
+import com.theomls.dibs.auth.requireUserId
 import io.ktor.server.routing.get
 
 fun Route.userRoutes(userService: UserService) {
     // Create user
     post("/users") {
         val request = call.receive<CreateUserRequest>()
-//        val principal = call.principal<FirebaseUserPrincipal>()
-//            ?: throw IllegalStateException("Principal not found in authenticated route")
-//
-//        val userId = principal.uid
-        val userId = "test_user_1"
+        val userId = call.requireUserId(true)
 
         val createdUser = userService.createUser(userId, request)
         call.respond(HttpStatusCode.Created, createdUser)
@@ -27,12 +22,7 @@ fun Route.userRoutes(userService: UserService) {
 
     // Get current user
     get("/users/me") {
-//        val principal = call.principal<FirebaseUserPrincipal>()
-//            ?: throw IllegalStateException("Principal not found in authenticated route")
-//
-//        val userId = principal.uid
-
-        val userId = "test_user_1"
+        val userId = call.requireUserId(true)
 
         val user = userService.getUserById(userId)
         call.respond(HttpStatusCode.OK, user)

@@ -11,15 +11,15 @@ class TaskService(
     private val groupRepository: GroupRepository,
     private val userRepository: UserRepository
 ) {
-    suspend fun createTask(userId: String, request: CreateTaskRequest): Task {
+    suspend fun createTask(userId: String, groupId: String, request: CreateTaskRequest): Task {
         TODO()
     }
 
-    suspend fun getTaskById(taskId: String): Task {
+    suspend fun getTaskById(userId: String, taskId: String): Task {
         TODO()
     }
 
-    suspend fun getTasksByGroupId(groupId: String): List<Task> {
+    suspend fun getTasksByGroupId(userId:String, groupId: String): List<Task> {
         TODO()
     }
 

@@ -19,11 +19,6 @@ data class CreateUserRequest(
     val email: String,
 )
 
-@Serializable
-data class UpdateUserRequest(
-    val username: String? = null,
-)
-
 // Constants
 object UserConstants {
     const val MIN_USERNAME_LENGTH = 2

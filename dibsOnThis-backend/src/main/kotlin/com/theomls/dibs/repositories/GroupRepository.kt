@@ -1,7 +1,9 @@
 package com.theomls.dibs.repositories
 
 import com.google.cloud.firestore.CollectionReference
+import com.google.cloud.firestore.DocumentReference
 import com.google.cloud.firestore.Firestore
+import com.google.cloud.firestore.Transaction
 import com.theomls.dibs.models.Group
 import com.theomls.dibs.models.User
 import com.theomls.dibs.models.UserConstants
@@ -19,18 +21,12 @@ open class GroupRepository(db: Firestore) {
 
         // Check if user exists and group does not exist, then update user and group
         database.runTransaction { transaction ->
-            val userSnapshot = transaction.get(userRef).get()
-            if (!userSnapshot.exists()) {
-                throw IllegalArgumentException("User does not exist")
-            }
+            val user = getUserFromTransaction(transaction, userRef)
 
             val groupSnapshot = transaction.get(groupRef).get()
             if (groupSnapshot.exists()) {
                 throw IllegalArgumentException("Group already exists")
             }
-
-            val user = userSnapshot.toObject(User::class.java)
-                ?: throw IllegalArgumentException("User data is invalid")
 
             val updatedGroupIds = if (user.groupIds.contains(group.groupId)) {
                 user.groupIds
@@ -77,21 +73,8 @@ open class GroupRepository(db: Firestore) {
         val userRef = usersCollection.document(userId)
 
         database.runTransaction { transaction ->
-            val groupSnapshot = transaction.get(groupRef).get()
-            if (!groupSnapshot.exists()) {
-                throw IllegalArgumentException("Group does not exist")
-            }
-
-            val group = groupSnapshot.toObject(Group::class.java)
-                ?: throw IllegalArgumentException("Group data is invalid")
-
-            val userSnapshot = transaction.get(userRef).get()
-            if (!userSnapshot.exists()) {
-                throw IllegalArgumentException("User does not exist")
-            }
-
-            val user = userSnapshot.toObject(User::class.java)
-                ?: throw IllegalArgumentException("User data is invalid")
+            val group = getGroupFromTransaction(transaction, groupRef)
+            val user = getUserFromTransaction(transaction, userRef)
 
             if (!user.groupIds.contains(groupId) && user.groupIds.size >= UserConstants.MAX_GROUP_MEMBERSHIPS) {
                 throw IllegalArgumentException("User cannot join more than ${UserConstants.MAX_GROUP_MEMBERSHIPS} groups.")
@@ -123,21 +106,8 @@ open class GroupRepository(db: Firestore) {
         val userRef = usersCollection.document(userId)
 
         database.runTransaction { transaction ->
-            val groupSnapshot = transaction.get(groupRef).get()
-            if (!groupSnapshot.exists()) {
-                throw IllegalArgumentException("Group does not exist")
-            }
-
-            val group = groupSnapshot.toObject(Group::class.java)
-                ?: throw IllegalArgumentException("Group data is invalid")
-
-            val userSnapshot = transaction.get(userRef).get()
-            if (!userSnapshot.exists()) {
-                throw IllegalArgumentException("User does not exist")
-            }
-
-            val user = userSnapshot.toObject(User::class.java)
-                ?: throw IllegalArgumentException("User data is invalid")
+            val group = getGroupFromTransaction(transaction, groupRef)
+            val user = getUserFromTransaction(transaction, userRef)
 
             if (!group.memberIds.contains(userId)) {
                 throw IllegalArgumentException("User is not a member of this group")
@@ -157,5 +127,29 @@ open class GroupRepository(db: Firestore) {
 
             return@runTransaction groupWasDeleted
         }.get()
+    }
+
+    private fun getUserFromTransaction(
+        transaction: Transaction,
+        userRef: DocumentReference
+    ): User {
+        val userSnapshot = transaction.get(userRef).get()
+        if (!userSnapshot.exists()) {
+            throw IllegalArgumentException("User does not exist")
+        }
+        return userSnapshot.toObject(User::class.java)
+            ?: throw IllegalArgumentException("User data is invalid")
+    }
+
+    private fun getGroupFromTransaction(
+        transaction: Transaction,
+        groupRef: DocumentReference
+    ): Group {
+        val groupSnapshot = transaction.get(groupRef).get()
+        if (!groupSnapshot.exists()) {
+            throw IllegalArgumentException("Group does not exist")
+        }
+        return groupSnapshot.toObject(Group::class.java)
+            ?: throw IllegalArgumentException("Group data is invalid")
     }
 }

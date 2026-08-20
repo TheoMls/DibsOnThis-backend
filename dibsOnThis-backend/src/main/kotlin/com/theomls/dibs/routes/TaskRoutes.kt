@@ -1,51 +1,74 @@
 package com.theomls.dibs.routes
 
-import com.theomls.dibs.auth.FirebaseUserPrincipal
+import com.theomls.dibs.auth.requireUserId
 import com.theomls.dibs.models.CreateTaskRequest
 import com.theomls.dibs.services.TaskService
 import io.ktor.http.*
-import io.ktor.server.auth.principal
 import io.ktor.server.request.*
-import io.ktor.server.response.*
+import io.ktor.server.response.respond
 import io.ktor.server.routing.*
 
 fun Route.taskRoutes(taskService: TaskService) {
 
     // Create task
-    post("/tasks") {
+    post("/groups/{groupId}/tasks") {
         val request = call.receive<CreateTaskRequest>()
-//        val principal = call.principal<FirebaseUserPrincipal>()
-//            ?: throw IllegalStateException("Principal not found in authenticated route")
-//
-//        val user_id = principal.uid
-        val userId = "test_user_1"
 
-        val createdTask = taskService.createTask(userId, request)
+        val groupId = call.parameters["groupId"]
+        ?: throw IllegalArgumentException("Missing group id")
+        val userId = call.requireUserId(true)
+
+        val createdTask = taskService.createTask(userId, groupId, request)
         call.respond(HttpStatusCode.Created, createdTask)
-    }
-
-    // Get a task
-    get("/tasks/{taskId}") {
-        // TODO: Implement task retrieval
     }
 
     // Get tasks for a group
     get("/groups/{groupId}/tasks") {
-        // TODO: Implement task retrieval for a group
+        val groupId = call.parameters["groupId"]
+        ?: throw IllegalArgumentException("Missing group id")
+        val userId = call.requireUserId(true)
+
+        val tasks = taskService.getTasksByGroupId(userId, groupId)
+        call.respond(HttpStatusCode.OK, tasks)
+    }
+
+    // Get a task
+    get("/tasks/{taskId}") {
+        val taskId = call.parameters["taskId"]
+            ?: throw IllegalArgumentException("Missing task id")
+        val userId = call.requireUserId(true)
+
+        val task = taskService.getTaskById(userId, taskId)
+        call.respond(HttpStatusCode.OK, task)
     }
 
     // Claim task
     post("/tasks/{taskId}/claim") {
-        // TODO: Implement task claiming
+        val taskId = call.parameters["taskId"]
+            ?: throw IllegalArgumentException("Missing task id")
+        val userId = call.requireUserId(true)
+
+        val claimedTask = taskService.claimTask(userId, taskId)
+        call.respond(HttpStatusCode.OK, claimedTask)
     }
 
     // Complete task
     post("/tasks/{taskId}/complete") {
-        // TODO: Implement task completion
+        val taskId = call.parameters["taskId"]
+        ?: throw IllegalArgumentException("Missing task id")
+        val userId = call.requireUserId(true)
+
+        val claimedTask = taskService.completeTask(userId, taskId)
+        call.respond(HttpStatusCode.OK, claimedTask)
     }
 
     // Unclaim Task
     post("/tasks/{taskId}/unclaim") {
-        // TODO: Implement task unclaiming
+        val taskId = call.parameters["taskId"]
+            ?: throw IllegalArgumentException("Missing task id")
+        val userId = call.requireUserId(true)
+
+        val claimedTask = taskService.unclaimTask(userId, taskId)
+        call.respond(HttpStatusCode.OK, claimedTask)
     }
 }

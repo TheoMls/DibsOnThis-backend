@@ -3,6 +3,7 @@ package com.theomls.dibs.services
 import com.theomls.dibs.models.*
 import com.theomls.dibs.repositories.GroupRepository
 import com.theomls.dibs.repositories.UserRepository
+import io.ktor.server.plugins.NotFoundException
 import kotlinx.coroutines.runBlocking
 import kotlin.test.*
 import java.lang.reflect.Proxy
@@ -110,7 +111,7 @@ class GroupServiceTest {
             val inviteCode = "A".repeat(GroupConstants.INVITE_CODE_LENGTH)
             mockGroupRepo.groupToReturnByInviteCode = null
 
-            assertFailsWith<IllegalArgumentException> {
+            assertFailsWith<NotFoundException> {
                 groupService.joinGroup("user123", JoinGroupRequest(inviteCode))
             }
         }

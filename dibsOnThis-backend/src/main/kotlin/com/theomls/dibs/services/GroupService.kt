@@ -109,8 +109,14 @@ class GroupService(
         )
     }
 
-    suspend fun getGroupById(groupId: String): Group {
-        return groupRepository.getGroupById(groupId)
+    suspend fun getGroupById(userId: String, groupId: String): Group {
+        val group = groupRepository.getGroupById(groupId)
             ?: throw NotFoundException("Group not found with ID: $groupId")
+
+        if (!group.memberIds.contains(userId)) {
+            throw IllegalArgumentException("User is not a member of this group")
+        }
+
+        return group
     }
 }

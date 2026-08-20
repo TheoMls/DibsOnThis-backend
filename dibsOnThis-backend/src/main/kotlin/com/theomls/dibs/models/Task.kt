@@ -24,7 +24,6 @@ data class Task(
 // DTOs
 @Serializable
 data class CreateTaskRequest(
-    val groupId: String,
     val title: String,
     val description: String = ""
 )

@@ -1,4 +1,6 @@
 package com.theomls.dibs.repositories
 
-class TaskRepository {
+import com.google.cloud.firestore.Firestore
+
+class TaskRepository (private val db: Firestore) {
 }

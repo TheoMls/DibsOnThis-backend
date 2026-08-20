@@ -2,40 +2,50 @@ package com.theomls.dibs.routes
 
 import com.theomls.dibs.auth.FirebaseUserPrincipal
 import com.theomls.dibs.models.CreateTaskRequest
+import com.theomls.dibs.services.TaskService
 import io.ktor.http.*
-import io.ktor.server.auth.authenticate
 import io.ktor.server.auth.principal
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
-fun Route.taskRoutes() {
+fun Route.taskRoutes(taskService: TaskService) {
 
-    //authenticate("firebase-auth") {
-        // Create task
-        post("/tasks") {
-            val request = call.receive<CreateTaskRequest>()
-            // TODO: Implement task creation
-        }
+    // Create task
+    post("/tasks") {
+        val request = call.receive<CreateTaskRequest>()
+//        val principal = call.principal<FirebaseUserPrincipal>()
+//            ?: throw IllegalStateException("Principal not found in authenticated route")
+//
+//        val user_id = principal.uid
+        val userId = "test_user_1"
 
-        // Get tasks for a group
-        get("/groups/{groupId}/tasks") {
-            // TODO: Implement task retrieval
-        }
+        val createdTask = taskService.createTask(userId, request)
+        call.respond(HttpStatusCode.Created, createdTask)
+    }
 
-        // Claim task
-        post("/tasks/{groupId}/claim") {
-            // TODO: Implement task claiming
-        }
+    // Get a task
+    get("/tasks/{taskId}") {
+        // TODO: Implement task retrieval
+    }
 
-        // Complete task
-        post("/tasks/{groupId}/complete") {
-            // TODO: Implement task completion
-        }
+    // Get tasks for a group
+    get("/groups/{groupId}/tasks") {
+        // TODO: Implement task retrieval for a group
+    }
 
-        // Unclaim Task
-        post("/tasks/{groupId}/unclaim") {
-            // TODO: Implement task unclaiming
-        }
-    //}
+    // Claim task
+    post("/tasks/{taskId}/claim") {
+        // TODO: Implement task claiming
+    }
+
+    // Complete task
+    post("/tasks/{taskId}/complete") {
+        // TODO: Implement task completion
+    }
+
+    // Unclaim Task
+    post("/tasks/{taskId}/unclaim") {
+        // TODO: Implement task unclaiming
+    }
 }

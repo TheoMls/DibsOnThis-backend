@@ -13,49 +13,47 @@ import io.ktor.server.routing.*
 
 fun Route.groupRoutes(groupService: GroupService) {
 
-    //authenticate("firebase-auth") {
-        // Create group
-        post("/groups") {
-            val request = call.receive<CreateGroupRequest>()
-//            val principal = call.principal<FirebaseUserPrincipal>()
-//                ?: throw IllegalStateException("Principal not found in authenticated route")
+    // Create group
+    post("/groups") {
+        val request = call.receive<CreateGroupRequest>()
+//        val principal = call.principal<FirebaseUserPrincipal>()
+//           ?: throw IllegalStateException("Principal not found in authenticated route")
 //
-//            val user_id = principal.uid
-            val user_id = "test_user_1"
+//        val userId = principal.uid
+        val userId = "test_user_1"
 
-            val group = groupService.createGroup(user_id, request)
-            call.respond(HttpStatusCode.Created, group)
-        }
+        val group = groupService.createGroup(userId, request)
+        call.respond(HttpStatusCode.Created, group)
+    }
 
-        // Join group
-        post("/groups/join") {
-            val request = call.receive<JoinGroupRequest>()
-//            val principal = call.principal<FirebaseUserPrincipal>()
-//                ?: throw IllegalStateException("Principal not found in authenticated route")
+    // Join group
+    post("/groups/join") {
+        val request = call.receive<JoinGroupRequest>()
+//        val principal = call.principal<FirebaseUserPrincipal>()
+//            ?: throw IllegalStateException("Principal not found in authenticated route")
 //
-//            val user_id = principal.uid
-            val user_id = "test_user_1"
+//        val userId = principal.uid
+        val userId = "test_user_1"
 
-            val group = groupService.joinGroup(user_id, request)
-            call.respond(HttpStatusCode.OK, group)
-        }
+        val group = groupService.joinGroup(userId, request)
+        call.respond(HttpStatusCode.OK, group)
+    }
 
-        // Leave group
-        post("/groups/{groupId}/leave") {
-            val groupId = call.parameters["groupId"]
-                ?: throw IllegalArgumentException("Missing group id")
+    // Leave group
+    post("/groups/{groupId}/leave") {
+        val groupId = call.parameters["groupId"]
+            ?: throw IllegalArgumentException("Missing group id")
 
-//            val principal = call.principal<FirebaseUserPrincipal>()
-//                ?: throw IllegalStateException("Principal not found in authenticated route")
+//        val principal = call.principal<FirebaseUserPrincipal>()
+//            ?: throw IllegalStateException("Principal not found in authenticated route")
 //
-//            val user_id = principal.uid
+//        val userId = principal.uid
 
-            val user_id = "test_user_1"
+        val userId = "test_user_1"
 
-            val response = groupService.leaveGroup(user_id, groupId)
-            call.respond(HttpStatusCode.OK, response)
-        }
-    //}
+        val response = groupService.leaveGroup(userId, groupId)
+        call.respond(HttpStatusCode.OK, response)
+    }
 
     // Get group info
     get("/groups/{groupId}") {

@@ -48,6 +48,12 @@ open class GroupRepository(db: Firestore) {
         groupsCollection.document(groupId).get().get().exists()
     }
 
+    open suspend fun ensureGroupExists(groupId: String) {
+        if (!existsById(groupId)) {
+            throw io.ktor.server.plugins.NotFoundException("Group does not exist")
+        }
+    }
+
     open suspend fun existsByInviteCode(inviteCode: String): Boolean = withContext(Dispatchers.IO) {
         val querySnapshot = groupsCollection
             .whereEqualTo("inviteCode", inviteCode)

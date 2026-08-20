@@ -16,11 +16,8 @@ class UserService(private val userRepository: UserRepository) {
             is ValidationResult.Success -> validation.value
             is ValidationResult.Failure -> throw IllegalArgumentException(validation.message)
         }
-
-        // Business Rule: Check if the user already has a profile registered
-        if (userRepository.existsById(userId)) {
-            throw IllegalArgumentException("User profile already exists!")
-        }
+        
+        userRepository.ensureUserDoesNotExist(userId)
 
         // Combine clean input with server rules (points = 0, current timestamp)
         val newUser = User(

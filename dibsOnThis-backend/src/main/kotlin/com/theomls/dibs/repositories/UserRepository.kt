@@ -25,4 +25,16 @@ open class UserRepository(db: Firestore) {
     open suspend fun existsById(id: String): Boolean = withContext(Dispatchers.IO) {
         database.collection("users").document(id).get().get().exists()
     }
+
+    open suspend fun ensureUserExists(id: String) {
+        if (!existsById(id)) {
+            throw IllegalArgumentException("User does not exist")
+        }
+    }
+
+    open suspend fun ensureUserDoesNotExist(id: String) {
+        if (existsById(id)) {
+            throw IllegalArgumentException("User profile already exists!")
+        }
+    }
 }

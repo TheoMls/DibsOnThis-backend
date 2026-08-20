@@ -116,4 +116,17 @@ class GroupServiceTest {
             }
         }
     }
+
+    @Test
+    fun `leaveGroup should throw if group does not exist`() {
+        runBlocking {
+            val userId = "user123"
+            val groupId = "non-existent-group"
+            mockGroupRepo.groupExistsById = false
+
+            assertFailsWith<NotFoundException> {
+                groupService.leaveGroup(userId, groupId)
+            }
+        }
+    }
 }

@@ -42,9 +42,7 @@ class GroupService(
     }
 
     suspend fun createGroup(userId: String, request: CreateGroupRequest): Group {
-        if (!userRepository.existsById(userId)) {
-            throw IllegalArgumentException("User does not exist")
-        }
+        userRepository.ensureUserExists(userId)
         val validation = GroupValidator.validateCreateGroup(request)
 
         val cleanRequest = when (validation) {
@@ -75,9 +73,7 @@ class GroupService(
     }
 
     suspend fun joinGroup(userId: String, request: JoinGroupRequest): Group {
-        if (!userRepository.existsById(userId)) {
-            throw IllegalArgumentException("User does not exist")
-        }
+        userRepository.ensureUserExists(userId)
 
         val validation = GroupValidator.validateJoinGroup(request)
 
@@ -93,13 +89,8 @@ class GroupService(
     }
 
     suspend fun leaveGroup(userId: String, groupId: String): LeaveGroupResponse {
-        if (!userRepository.existsById(userId)) {
-            throw IllegalArgumentException("User does not exist")
-        }
-
-        if (!groupRepository.existsById(groupId)) {
-            throw NotFoundException("Group does not exist")
-        }
+        userRepository.ensureUserExists(userId)
+        groupRepository.ensureGroupExists(groupId)
 
         val groupWasDeleted = groupRepository.removeMemberFromGroup(groupId, userId)
 

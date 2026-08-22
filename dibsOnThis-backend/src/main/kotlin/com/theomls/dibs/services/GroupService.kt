@@ -101,6 +101,8 @@ class GroupService(
     }
 
     suspend fun getGroupById(userId: String, groupId: String): Group {
+        userRepository.ensureUserExists(userId)
+
         val group = groupRepository.getGroupById(groupId)
             ?: throw NotFoundException("Group not found with ID: $groupId")
 

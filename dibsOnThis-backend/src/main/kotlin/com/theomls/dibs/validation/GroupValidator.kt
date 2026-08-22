@@ -11,22 +11,17 @@ object GroupValidator {
      * Returns a [ValidationResult] containing either the sanitized request or an error message.
      */
     fun validateCreateGroup(request: CreateGroupRequest): ValidationResult<CreateGroupRequest> {
-        val cleanName = request.name.trim()
-
-        if (cleanName.isBlank()) {
-            return ValidationResult.Failure("Group name cannot be blank.")
-        }
-
-        val minNameLen = GroupConstants.MIN_NAME_LENGTH
-        val maxNameLen = GroupConstants.MAX_NAME_LENGTH
-
-        if (cleanName.length !in minNameLen..maxNameLen) {
-            return ValidationResult.Failure("Group name must be between $minNameLen and $maxNameLen characters.")
-        }
-
-        return ValidationResult.Success(
-            request.copy(name = cleanName)
+        val result = ValidationUtils.validateString(
+            request.name,
+            GroupConstants.MIN_NAME_LENGTH,
+            GroupConstants.MAX_NAME_LENGTH,
+            "Group name"
         )
+
+        return when (result) {
+            is ValidationResult.Success -> ValidationResult.Success(request.copy(name = result.value))
+            is ValidationResult.Failure -> result
+        }
     }
 
     /**

@@ -20,7 +20,7 @@ class GroupValidatorTest {
         val result = GroupValidator.validateCreateGroup(request)
 
         assertTrue(result is ValidationResult.Failure)
-        assertEquals("Group name cannot be blank.", result.message)
+        assertEquals("Group name must be between 3 and 20 characters.", result.message)
     }
 
     @Test

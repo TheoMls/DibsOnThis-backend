@@ -11,15 +11,15 @@ object UserValidator {
      * Returns a [ValidationResult] containing either the sanitized request or an error message.
      */
     fun validateCreateUser(request: CreateUserRequest): ValidationResult<CreateUserRequest> {
-        val cleanName = request.username.trim()
-        val cleanEmail = request.email.trim().lowercase()
+        val nameResult = ValidationUtils.validateString(
+            request.username,
+            UserConstants.MIN_USERNAME_LENGTH,
+            UserConstants.MAX_USERNAME_LENGTH,
+            "Userame"
+        )
+        if (nameResult is ValidationResult.Failure) return nameResult
 
-        val minUsernameLen = UserConstants.MIN_USERNAME_LENGTH
-        val maxUsernameLen = UserConstants.MAX_USERNAME_LENGTH
-        
-        if (cleanName.length !in minUsernameLen..maxUsernameLen) {
-            return ValidationResult.Failure("Name must be $minUsernameLen-$maxUsernameLen characters")
-        }
+        val cleanEmail = request.email.trim().lowercase()
 
         if (!EMAIL_REGEX.matches(cleanEmail)) {
             return ValidationResult.Failure("Invalid email format")
@@ -27,7 +27,7 @@ object UserValidator {
 
         return ValidationResult.Success(
             request.copy(
-                username = cleanName,
+                username = (nameResult as ValidationResult.Success).value,
                 email = cleanEmail
             )
         )

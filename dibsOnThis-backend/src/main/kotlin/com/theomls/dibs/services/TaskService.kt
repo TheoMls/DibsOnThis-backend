@@ -5,6 +5,8 @@ import com.theomls.dibs.models.Task
 import com.theomls.dibs.repositories.GroupRepository
 import com.theomls.dibs.repositories.TaskRepository
 import com.theomls.dibs.repositories.UserRepository
+import com.theomls.dibs.validation.TaskValidator
+import com.theomls.dibs.validation.ValidationResult
 
 class TaskService(
     private val taskRepository: TaskRepository,
@@ -12,7 +14,23 @@ class TaskService(
     private val userRepository: UserRepository
 ) {
     suspend fun createTask(userId: String, groupId: String, request: CreateTaskRequest): Task {
-        TODO()
+        userRepository.ensureUserExists(userId)
+        groupRepository.ensureGroupExists(groupId)
+        val validation = TaskValidator.validateCreateTask(request)
+
+        val cleanRequest = when (validation) {
+            is ValidationResult.Success -> validation.value
+            is ValidationResult.Failure -> throw IllegalArgumentException(validation.message)
+        }
+
+        val newTask = Task(
+            groupId = groupId,
+            title = cleanRequest.title,
+            description = cleanRequest.description,
+            createdByUserId = userId
+        )
+
+        return taskRepository.saveTask(newTask)
     }
 
     suspend fun getTaskById(userId: String, taskId: String): Task {

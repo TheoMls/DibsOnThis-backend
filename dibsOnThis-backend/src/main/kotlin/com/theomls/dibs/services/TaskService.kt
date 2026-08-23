@@ -8,6 +8,7 @@ import com.theomls.dibs.repositories.UserRepository
 import com.theomls.dibs.utils.generateUnique
 import com.theomls.dibs.validation.TaskValidator
 import com.theomls.dibs.validation.ValidationResult
+import io.ktor.server.plugins.NotFoundException
 import java.util.UUID
 
 class TaskService(
@@ -41,11 +42,28 @@ class TaskService(
     }
 
     suspend fun getTaskById(userId: String, taskId: String): Task {
-        TODO()
+        val task = taskRepository.getTaskById(taskId)
+            ?: throw NotFoundException("Task not found")
+
+        val group = groupRepository.getGroupById(task.groupId)
+            ?: throw NotFoundException("Group not found")
+
+        if (!group.memberIds.contains(userId)) {
+            throw IllegalArgumentException("User is not a member of this group")
+        }
+
+        return task
     }
 
-    suspend fun getTasksByGroupId(userId:String, groupId: String): List<Task> {
-        TODO()
+    suspend fun getTasksByGroupId(userId: String, groupId: String): List<Task> {
+        val group = groupRepository.getGroupById(groupId)
+            ?: throw NotFoundException("Group not found")
+
+        if (!group.memberIds.contains(userId)) {
+            throw IllegalArgumentException("User is not a member of this group")
+        }
+
+        return taskRepository.getTasksByGroupId(groupId)
     }
 
     suspend fun claimTask(userId: String, taskId: String): Task {

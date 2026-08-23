@@ -28,11 +28,12 @@ class UserServiceTest {
         var savedUser: User? = null
 
         override suspend fun saveUser(user: User): User {
-            if (userExists) {
-                throw IllegalArgumentException("User profile already exists!")
-            }
             savedUser = user
             return user
+        }
+
+        override suspend fun existsById(id: String): Boolean {
+            return userExists
         }
 
         override suspend fun getUserById(id: String): User? {

@@ -6,36 +6,36 @@ import com.google.cloud.firestore.Firestore
 import com.google.cloud.firestore.Transaction
 import com.theomls.dibs.models.Group
 import com.theomls.dibs.models.Task
-import com.theomls.dibs.models.User
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-class TaskRepository (db: Firestore) {
-    private val tasksCollection: CollectionReference = db.collection("tasks")
-    private val groupsCollection: CollectionReference = db.collection("groups")
-    private val usersCollection: CollectionReference = db.collection("users")
-    private val database = db
+open class TaskRepository (db: Firestore) {
+    protected open val tasksCollection: CollectionReference by lazy { db.collection("tasks") }
+    protected open val groupsCollection: CollectionReference by lazy { db.collection("groups") }
+    protected open val usersCollection: CollectionReference by lazy { db.collection("users") }
+    protected open val database = db
 
-    suspend fun existsById(taskId: String): Boolean = withContext(Dispatchers.IO) {
+    open suspend fun existsById(taskId: String): Boolean = withContext(Dispatchers.IO) {
         tasksCollection.document(taskId).get().get().exists()
     }
 
-    suspend fun saveTask(newTask: Task, userId: String): Task = withContext(Dispatchers.IO) {
+    open suspend fun saveTask(newTask: Task, userId: String): Task = withContext(Dispatchers.IO) {
         val taskRef = tasksCollection.document(newTask.taskId)
         val groupRef = groupsCollection.document(newTask.groupId)
         val userRef = usersCollection.document(userId)
 
         database.runTransaction { transaction ->
             // Verify user exists
-            getUserFromTransaction(transaction, userRef)
+            UserRepository.fetchUserOrThrow(transaction, userRef)
 
             // Verify group exists
-            val groupSnapshot = transaction.get(groupRef).get()
-            if (!groupSnapshot.exists()) {
-                throw IllegalArgumentException("Group does not exist")
+            val group = GroupRepository.fetchGroupOrThrow(transaction, groupRef)
+
+            // Verify task does not exist
+            val taskSnapshot = transaction.get(taskRef).get()
+            if (taskSnapshot.exists()) {
+                throw IllegalArgumentException("Task already exists")
             }
-            val group = groupSnapshot.toObject(Group::class.java)
-                ?: throw IllegalArgumentException("Group data is invalid")
 
             // Verify user is member of group
             if (!group.memberIds.contains(userId)) {
@@ -49,15 +49,27 @@ class TaskRepository (db: Firestore) {
         }.get()
     }
 
-    private fun getUserFromTransaction(
-        transaction: Transaction,
-        userRef: DocumentReference
-    ): User {
-        val userSnapshot = transaction.get(userRef).get()
-        if (!userSnapshot.exists()) {
-            throw IllegalArgumentException("User does not exist")
+    open suspend fun getTaskById(taskId: String): Task? = withContext(Dispatchers.IO) {
+        val doc = tasksCollection.document(taskId).get().get()
+        return@withContext if (doc != null && doc.exists()) doc.toObject(Task::class.java) else null
+    }
+
+    open suspend fun getTasksByGroupId(groupId: String): List<Task> = withContext(Dispatchers.IO) {
+        val querySnapshot = tasksCollection.whereEqualTo("groupId", groupId).get().get()
+        return@withContext querySnapshot.documents.mapNotNull { it.toObject(Task::class.java) }
+    }
+
+    companion object {
+        fun fetchTaskOrThrow(
+            transaction: Transaction,
+            taskRef: DocumentReference
+        ): Task {
+            val taskSnapshot = transaction.get(taskRef).get()
+            if (!taskSnapshot.exists()) {
+                throw IllegalArgumentException("Task does not exist")
+            }
+            return taskSnapshot.toObject(Task::class.java)
+                ?: throw IllegalArgumentException("Task data is invalid")
         }
-        return userSnapshot.toObject(User::class.java)
-            ?: throw IllegalArgumentException("User data is invalid")
     }
 }

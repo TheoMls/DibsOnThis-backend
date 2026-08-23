@@ -1,4 +1,6 @@
-package com.theomls.dibs.auth
+package com.theomls.dibs.utils
+
+import com.theomls.dibs.auth.FirebaseUserPrincipal
 
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.auth.principal

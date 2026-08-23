@@ -5,8 +5,10 @@ import com.theomls.dibs.models.Task
 import com.theomls.dibs.repositories.GroupRepository
 import com.theomls.dibs.repositories.TaskRepository
 import com.theomls.dibs.repositories.UserRepository
+import com.theomls.dibs.utils.generateUnique
 import com.theomls.dibs.validation.TaskValidator
 import com.theomls.dibs.validation.ValidationResult
+import java.util.UUID
 
 class TaskService(
     private val taskRepository: TaskRepository,
@@ -23,7 +25,14 @@ class TaskService(
             is ValidationResult.Failure -> throw IllegalArgumentException(validation.message)
         }
 
+        val taskId = generateUnique(
+            generator = { UUID.randomUUID().toString() },
+            existsChecker = taskRepository::existsById,
+            whatUnique = "Task ID"
+        )
+
         val newTask = Task(
+            taskId = taskId,
             groupId = groupId,
             title = cleanRequest.title,
             description = cleanRequest.description,

@@ -1,6 +1,6 @@
 package com.theomls.dibs.routes
 
-import com.theomls.dibs.auth.requireUserId
+import com.theomls.dibs.utils.requireUserId
 import com.theomls.dibs.models.CreateTaskRequest
 import com.theomls.dibs.services.TaskService
 import io.ktor.http.*

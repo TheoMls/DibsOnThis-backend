@@ -1,4 +1,6 @@
-package com.theomls.dibs.validation
+package com.theomls.dibs.utils
+
+import com.theomls.dibs.validation.ValidationResult
 
 object ValidationUtils {
     fun validateString(str: String, minLen: Int, maxLen: Int, fieldName: String): ValidationResult<String> {

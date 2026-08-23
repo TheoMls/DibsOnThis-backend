@@ -1,6 +1,7 @@
 package com.theomls.dibs.validation
 
 import com.theomls.dibs.models.*
+import com.theomls.dibs.utils.ValidationUtils
 
 object GroupValidator {
     

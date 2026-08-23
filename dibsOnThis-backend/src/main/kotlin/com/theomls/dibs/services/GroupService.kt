@@ -3,6 +3,7 @@ package com.theomls.dibs.services
 import com.theomls.dibs.models.*
 import com.theomls.dibs.repositories.GroupRepository
 import com.theomls.dibs.repositories.UserRepository
+import com.theomls.dibs.utils.generateUnique
 import com.theomls.dibs.validation.GroupValidator
 import com.theomls.dibs.validation.ValidationResult
 import io.ktor.server.plugins.NotFoundException
@@ -15,25 +16,6 @@ class GroupService(
 ) {
     private val secureRandom = SecureRandom()
     private val charset = GroupConstants.INVITE_CODE_CHARSET
-
-    private suspend fun generateUnique(
-        generator: () -> String,
-        existsChecker: suspend (String) -> Boolean,
-        whatUnique: String
-    ): String {
-        var code: String
-        var exists: Boolean
-        var tries = 0
-        do {
-            code = generator()
-            exists = existsChecker(code)
-            tries++
-            if (tries >= GroupConstants.UNIQUE_GENERATION_MAX_ATTEMPTS) {
-                throw IllegalStateException("Failed to generate unique $whatUnique after $tries attempts.")
-            }
-        } while (exists)
-        return code
-    }
 
     private fun generateInviteCode(length: Int = GroupConstants.INVITE_CODE_LENGTH): String {
         return (1..length)

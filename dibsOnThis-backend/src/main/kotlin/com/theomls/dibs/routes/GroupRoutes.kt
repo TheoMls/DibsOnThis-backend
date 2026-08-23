@@ -3,7 +3,7 @@ package com.theomls.dibs.routes
 import com.theomls.dibs.models.CreateGroupRequest
 import com.theomls.dibs.models.JoinGroupRequest
 import com.theomls.dibs.services.GroupService
-import com.theomls.dibs.auth.requireUserId
+import com.theomls.dibs.utils.requireUserId
 import io.ktor.http.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*

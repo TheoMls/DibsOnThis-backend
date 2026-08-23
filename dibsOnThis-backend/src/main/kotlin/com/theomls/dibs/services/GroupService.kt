@@ -24,7 +24,6 @@ class GroupService(
     }
 
     suspend fun createGroup(userId: String, request: CreateGroupRequest): Group {
-        userRepository.ensureUserExists(userId)
         val validation = GroupValidator.validateCreateGroup(request)
 
         val cleanRequest = when (validation) {
@@ -44,19 +43,17 @@ class GroupService(
             whatUnique = "Invite Code"
         )
 
-        val group = Group(
+        val newGroup = Group(
             groupId = groupId,
             name = cleanRequest.name,
             inviteCode = inviteCode,
             memberIds = listOf(userId),
         )
 
-        return groupRepository.createGroup(group, userId)
+        return groupRepository.saveGroup(newGroup, userId)
     }
 
     suspend fun joinGroup(userId: String, request: JoinGroupRequest): Group {
-        userRepository.ensureUserExists(userId)
-
         val validation = GroupValidator.validateJoinGroup(request)
 
         val cleanRequest = when (validation) {
@@ -71,9 +68,6 @@ class GroupService(
     }
 
     suspend fun leaveGroup(userId: String, groupId: String): LeaveGroupResponse {
-        userRepository.ensureUserExists(userId)
-        groupRepository.ensureGroupExists(groupId)
-
         val groupWasDeleted = groupRepository.removeMemberFromGroup(groupId, userId)
 
         return LeaveGroupResponse(
@@ -83,8 +77,6 @@ class GroupService(
     }
 
     suspend fun getGroupById(userId: String, groupId: String): Group {
-        userRepository.ensureUserExists(userId)
-
         val group = groupRepository.getGroupById(groupId)
             ?: throw NotFoundException("Group not found with ID: $groupId")
 

@@ -16,8 +16,6 @@ class TaskService(
     private val userRepository: UserRepository
 ) {
     suspend fun createTask(userId: String, groupId: String, request: CreateTaskRequest): Task {
-        userRepository.ensureUserExists(userId)
-        groupRepository.ensureGroupExists(groupId)
         val validation = TaskValidator.validateCreateTask(request)
 
         val cleanRequest = when (validation) {
@@ -39,7 +37,7 @@ class TaskService(
             createdByUserId = userId
         )
 
-        return taskRepository.saveTask(newTask)
+        return taskRepository.saveTask(newTask, userId)
     }
 
     suspend fun getTaskById(userId: String, taskId: String): Task {

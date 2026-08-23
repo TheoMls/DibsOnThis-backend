@@ -17,8 +17,6 @@ class UserService(private val userRepository: UserRepository) {
             is ValidationResult.Failure -> throw IllegalArgumentException(validation.message)
         }
         
-        userRepository.ensureUserDoesNotExist(userId)
-
         // Combine clean input with server rules (points = 0, current timestamp)
         val newUser = User(
             id = userId,
@@ -29,9 +27,7 @@ class UserService(private val userRepository: UserRepository) {
             createdAt = System.currentTimeMillis()
         )
 
-        userRepository.saveUser(newUser)
-
-        return newUser
+        return userRepository.saveUser(newUser)
     }
 
     suspend fun getUserById(userId: String): User {

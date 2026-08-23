@@ -2,7 +2,6 @@ package com.theomls.dibs.repositories
 
 import com.google.cloud.firestore.DocumentSnapshot
 import com.google.cloud.firestore.Firestore
-import com.google.cloud.firestore.WriteResult
 import com.theomls.dibs.models.User
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -10,11 +9,17 @@ import kotlinx.coroutines.withContext
 open class UserRepository(db: Firestore) {
     protected open val database = db
 
-    open suspend fun saveUser(user: User): WriteResult = withContext(Dispatchers.IO) {
-        database.collection("users")
-            .document(user.id)
-            .set(user)
-            .get()
+    open suspend fun saveUser(user: User): User = withContext(Dispatchers.IO) {
+        val userRef = database.collection("users").document(user.id)
+        
+        database.runTransaction { transaction ->
+            val snapshot = transaction.get(userRef).get()
+            if (snapshot.exists()) {
+                throw IllegalArgumentException("User profile already exists!")
+            }
+            transaction.set(userRef, user)
+            return@runTransaction user
+        }.get()
     }
 
     open suspend fun getUserById(id: String): User? = withContext(Dispatchers.IO) {
@@ -24,17 +29,5 @@ open class UserRepository(db: Firestore) {
 
     open suspend fun existsById(id: String): Boolean = withContext(Dispatchers.IO) {
         database.collection("users").document(id).get().get().exists()
-    }
-
-    open suspend fun ensureUserExists(id: String) {
-        if (!existsById(id)) {
-            throw IllegalArgumentException("User does not exist")
-        }
-    }
-
-    open suspend fun ensureUserDoesNotExist(id: String) {
-        if (existsById(id)) {
-            throw IllegalArgumentException("User profile already exists!")
-        }
     }
 }

@@ -37,20 +37,33 @@ class GroupServiceTest {
         override val usersCollection: com.google.cloud.firestore.CollectionReference get() = throw UnsupportedOperationException("Mocked")
         
         var groupExistsById = false
+        var userExistsById = true
         var groupExistsByInviteCode = false
         var createdGroup: Group? = null
         var memberAddedGroup: Group? = null
         var groupToReturnByInviteCode: Group? = null
+        var groupDeleted = false
 
         override suspend fun existsById(groupId: String): Boolean = groupExistsById
         override suspend fun existsByInviteCode(inviteCode: String): Boolean = groupExistsByInviteCode
-        override suspend fun createGroup(group: Group, userId: String): Group {
+        
+        override suspend fun saveGroup(group: Group, userId: String): Group {
+            if (!userExistsById) throw IllegalArgumentException("User does not exist")
             createdGroup = group
             return group
         }
+        
         override suspend fun getGroupByInviteCode(inviteCode: String): Group? = groupToReturnByInviteCode
+        
         override suspend fun addMemberToGroup(groupId: String, userId: String): Group {
-            return memberAddedGroup ?: throw IllegalStateException("memberAddedGroup not set")
+            if (!userExistsById) throw IllegalArgumentException("User does not exist")
+            return memberAddedGroup ?: throw IllegalArgumentException("Group does not exist")
+        }
+
+        override suspend fun removeMemberFromGroup(groupId: String, userId: String): Boolean {
+            if (!userExistsById) throw IllegalArgumentException("User does not exist")
+            if (!groupExistsById) throw NotFoundException("Group does not exist")
+            return groupDeleted
         }
     }
 
@@ -82,7 +95,7 @@ class GroupServiceTest {
     @Test
     fun `createGroup should throw if user does not exist`() {
         runBlocking {
-            mockUserRepo.userExists = false
+            mockGroupRepo.userExistsById = false
             val request = CreateGroupRequest(name = "New Group")
 
             assertFailsWith<IllegalArgumentException> {

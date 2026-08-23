@@ -15,7 +15,7 @@ open class GroupRepository(db: Firestore) {
     protected open val usersCollection: CollectionReference by lazy { db.collection("users") }
     protected open val database = db
 
-    open suspend fun createGroup(group: Group, userId: String): Group = withContext(Dispatchers.IO) {
+    open suspend fun saveGroup(group: Group, userId: String): Group = withContext(Dispatchers.IO) {
         val groupRef = groupsCollection.document(group.groupId)
         val userRef = usersCollection.document(userId)
 
@@ -46,12 +46,6 @@ open class GroupRepository(db: Firestore) {
 
     open suspend fun existsById(groupId: String): Boolean = withContext(Dispatchers.IO) {
         groupsCollection.document(groupId).get().get().exists()
-    }
-
-    open suspend fun ensureGroupExists(groupId: String) {
-        if (!existsById(groupId)) {
-            throw io.ktor.server.plugins.NotFoundException("Group does not exist")
-        }
     }
 
     open suspend fun existsByInviteCode(inviteCode: String): Boolean = withContext(Dispatchers.IO) {

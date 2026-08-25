@@ -37,6 +37,4 @@ object GroupConstants {
     const val INVITE_CODE_CHARSET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
     const val MAX_GROUP_SIZE = 10
-
-    const val UNIQUE_GENERATION_MAX_ATTEMPTS = 50
 }

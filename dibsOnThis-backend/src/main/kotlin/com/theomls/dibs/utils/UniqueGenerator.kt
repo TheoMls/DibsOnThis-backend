@@ -1,6 +1,6 @@
 package com.theomls.dibs.utils
 
-import com.theomls.dibs.models.GroupConstants
+const val UNIQUE_GENERATION_MAX_ATTEMPTS = 50
 
 suspend fun generateUnique(
     generator: () -> String,
@@ -14,7 +14,7 @@ suspend fun generateUnique(
         code = generator()
         exists = existsChecker(code)
         tries++
-        if (tries >= GroupConstants.UNIQUE_GENERATION_MAX_ATTEMPTS) {
+        if (tries >= UNIQUE_GENERATION_MAX_ATTEMPTS) {
             throw IllegalStateException("Failed to generate unique $whatUnique after $tries attempts.")
         }
     } while (exists)

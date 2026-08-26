@@ -26,8 +26,7 @@ class TaskServiceTest {
 
     private class MockTaskRepository : TaskRepository(dummyDb) {
         override val tasksCollection: com.google.cloud.firestore.CollectionReference get() = throw UnsupportedOperationException("Mocked")
-        override val groupsCollection: com.google.cloud.firestore.CollectionReference get() = throw UnsupportedOperationException("Mocked")
-        override val usersCollection: com.google.cloud.firestore.CollectionReference get() = throw UnsupportedOperationException("Mocked")
+        override val database: com.google.cloud.firestore.Firestore get() = dummyDb
 
         var taskExists = false
         var savedTask: Task? = null
@@ -56,6 +55,7 @@ class TaskServiceTest {
     private class MockGroupRepository : GroupRepository(dummyDb) {
         override val groupsCollection: com.google.cloud.firestore.CollectionReference get() = throw UnsupportedOperationException("Mocked")
         override val usersCollection: com.google.cloud.firestore.CollectionReference get() = throw UnsupportedOperationException("Mocked")
+        override val database: com.google.cloud.firestore.Firestore get() = dummyDb
 
         var groupToReturn: Group? = null
 

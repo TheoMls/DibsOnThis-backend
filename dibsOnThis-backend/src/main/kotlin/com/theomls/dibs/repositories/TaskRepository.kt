@@ -10,8 +10,6 @@ import kotlinx.coroutines.withContext
 
 open class TaskRepository (db: Firestore) {
     protected open val tasksCollection: CollectionReference by lazy { db.collection("tasks") }
-    protected open val groupsCollection: CollectionReference by lazy { db.collection("groups") }
-    protected open val usersCollection: CollectionReference by lazy { db.collection("users") }
     protected open val database = db
 
     open suspend fun existsById(taskId: String): Boolean = withContext(Dispatchers.IO) {

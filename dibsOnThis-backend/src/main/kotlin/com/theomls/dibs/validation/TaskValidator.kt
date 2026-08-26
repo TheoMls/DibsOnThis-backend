@@ -2,12 +2,12 @@ package com.theomls.dibs.validation
 
 import com.theomls.dibs.models.CreateTaskRequest
 import com.theomls.dibs.models.TaskConstants
-import com.theomls.dibs.utils.ValidationUtils
+import com.theomls.dibs.utils.validateString
 
 object TaskValidator {
     
     fun validateCreateTask(request: CreateTaskRequest): ValidationResult<CreateTaskRequest> {
-        val titleResult = ValidationUtils.validateString(
+        val titleResult = validateString(
             request.title,
             TaskConstants.MIN_TITLE_LENGTH,
             TaskConstants.MAX_TITLE_LENGTH,
@@ -16,7 +16,7 @@ object TaskValidator {
 
         if (titleResult is ValidationResult.Failure) return titleResult
         
-        val descriptionResult = ValidationUtils.validateString(
+        val descriptionResult = validateString(
             request.description,
             0, TaskConstants.MAX_DESCRIPTION_LENGTH,
             "Task description"

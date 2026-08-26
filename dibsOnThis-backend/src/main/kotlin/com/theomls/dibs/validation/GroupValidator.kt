@@ -1,7 +1,7 @@
 package com.theomls.dibs.validation
 
 import com.theomls.dibs.models.*
-import com.theomls.dibs.utils.ValidationUtils
+import com.theomls.dibs.utils.validateString
 
 object GroupValidator {
     
@@ -12,7 +12,7 @@ object GroupValidator {
      * Returns a [ValidationResult] containing either the sanitized request or an error message.
      */
     fun validateCreateGroup(request: CreateGroupRequest): ValidationResult<CreateGroupRequest> {
-        val result = ValidationUtils.validateString(
+        val result = validateString(
             request.name,
             GroupConstants.MIN_NAME_LENGTH,
             GroupConstants.MAX_NAME_LENGTH,
@@ -32,9 +32,8 @@ object GroupValidator {
     fun validateJoinGroup(request: JoinGroupRequest): ValidationResult<JoinGroupRequest> {
         val cleanCode = request.inviteCode.trim().uppercase()
 
-        if (!cleanCode.matches(INVITE_CODE_REGEX)) {
+        if (!cleanCode.matches(INVITE_CODE_REGEX))
             return ValidationResult.Failure("Invalid invite code format.")
-        }
 
         return ValidationResult.Success(
             request.copy(inviteCode = cleanCode)

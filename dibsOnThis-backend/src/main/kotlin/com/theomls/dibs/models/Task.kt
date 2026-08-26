@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 enum class TaskStatus {
-    PENDING,    // Created, waiting for someone to "dib" it
+    OPEN,       // Created, waiting for someone to "dib" it
     CLAIMED,    // Claimed by a user, but not finished yet
     COMPLETED   // Done and points awarded
 }
@@ -16,9 +16,11 @@ data class Task(
     val title: String = "",
     val description: String = "",
     val points: Int = 1,
-    val status: TaskStatus = TaskStatus.PENDING,
+    val status: TaskStatus = TaskStatus.OPEN,
     val assignedToUserId: String? = null, // null if unclaimed
-    val createdByUserId: String = ""
+    val createdByUserId: String = "",
+    val createdAt: Long = System.currentTimeMillis(),
+    val completedAt: Long? = null
 )
 
 // DTOs

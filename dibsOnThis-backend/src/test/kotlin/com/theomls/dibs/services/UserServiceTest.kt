@@ -37,7 +37,11 @@ class UserServiceTest {
         }
 
         override suspend fun getUserById(id: String): User? {
-            return if (userExists) User(id = id) else null
+            return if (userExists) User(userId = id) else null
+        }
+
+        override suspend fun fetchUserOrThrow(id: String): User {
+            return getUserById(id) ?: throw io.ktor.server.plugins.NotFoundException("User does not exist")
         }
     }
 
@@ -57,7 +61,7 @@ class UserServiceTest {
         
         val result = userService.createUser(userId, request)
         
-        assertEquals(userId, result.id)
+        assertEquals(userId, result.userId)
         assertEquals("testuser", result.username)
         assertEquals("test@example.com", result.email)
         assertEquals(result, mockUserRepo.savedUser)

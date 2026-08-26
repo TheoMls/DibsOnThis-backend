@@ -1,11 +1,10 @@
 package com.theomls.dibs.repositories
 
 import com.google.cloud.firestore.CollectionReference
-import com.google.cloud.firestore.DocumentReference
 import com.google.cloud.firestore.Firestore
-import com.google.cloud.firestore.Transaction
-import com.theomls.dibs.models.Group
 import com.theomls.dibs.models.Task
+import com.theomls.dibs.models.TaskStatus
+import io.ktor.server.plugins.NotFoundException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -19,34 +18,9 @@ open class TaskRepository (db: Firestore) {
         tasksCollection.document(taskId).get().get().exists()
     }
 
-    open suspend fun saveTask(newTask: Task, userId: String): Task = withContext(Dispatchers.IO) {
-        val taskRef = tasksCollection.document(newTask.taskId)
-        val groupRef = groupsCollection.document(newTask.groupId)
-        val userRef = usersCollection.document(userId)
-
-        database.runTransaction { transaction ->
-            // Verify user exists
-            UserRepository.fetchUserOrThrow(transaction, userRef)
-
-            // Verify group exists
-            val group = GroupRepository.fetchGroupOrThrow(transaction, groupRef)
-
-            // Verify task does not exist
-            val taskSnapshot = transaction.get(taskRef).get()
-            if (taskSnapshot.exists()) {
-                throw IllegalArgumentException("Task already exists")
-            }
-
-            // Verify user is member of group
-            if (!group.memberIds.contains(userId)) {
-                throw IllegalArgumentException("User is not a member of this group")
-            }
-
-            // Save the task
-            transaction.set(taskRef, newTask)
-
-            return@runTransaction newTask
-        }.get()
+    open suspend fun saveTask(newTask: Task): Task = withContext(Dispatchers.IO) {
+        tasksCollection.document(newTask.taskId).set(newTask).get()
+        return@withContext newTask
     }
 
     open suspend fun getTaskById(taskId: String): Task? = withContext(Dispatchers.IO) {
@@ -59,17 +33,46 @@ open class TaskRepository (db: Firestore) {
         return@withContext querySnapshot.documents.mapNotNull { it.toObject(Task::class.java) }
     }
 
-    companion object {
-        fun fetchTaskOrThrow(
-            transaction: Transaction,
-            taskRef: DocumentReference
-        ): Task {
-            val taskSnapshot = transaction.get(taskRef).get()
-            if (!taskSnapshot.exists()) {
-                throw IllegalArgumentException("Task does not exist")
-            }
-            return taskSnapshot.toObject(Task::class.java)
-                ?: throw IllegalArgumentException("Task data is invalid")
-        }
+    open suspend fun fetchTaskOrThrow(taskId: String): Task = withContext(Dispatchers.IO) {
+        getTaskById(taskId) ?: throw NotFoundException("Task not found")
+    }
+
+    open suspend fun claimTask(task: Task, userId: String): Task = withContext(Dispatchers.IO) {
+        val taskRef = tasksCollection.document(task.taskId)
+
+        database.runTransaction { transaction ->
+            transaction.update(taskRef, "assignedToUserId", userId)
+            transaction.update(taskRef, "status", TaskStatus.CLAIMED)
+            return@runTransaction task.copy(assignedToUserId = userId, status = TaskStatus.CLAIMED)
+        }.get()
+    }
+
+    open suspend fun unclaimTask(task: Task, userId: String): Task = withContext(Dispatchers.IO) {
+        val taskRef = tasksCollection.document(task.taskId)
+
+        database.runTransaction { transaction ->
+            transaction.update(taskRef, "assignedToUserId", null)
+            transaction.update(taskRef, "status", TaskStatus.OPEN)
+            return@runTransaction task.copy(assignedToUserId = null, status = TaskStatus.OPEN)
+        }.get()
+    }
+
+    open suspend fun completeTask(task: Task, userId: String): Task = withContext(Dispatchers.IO) {
+        val taskRef = tasksCollection.document(task.taskId)
+
+        database.runTransaction { transaction ->
+            transaction.update(taskRef, "status", TaskStatus.COMPLETED)
+            transaction.update(taskRef, "completedAt", System.currentTimeMillis())
+            return@runTransaction task.copy(status = TaskStatus.COMPLETED, completedAt = System.currentTimeMillis())
+        }.get()
+    }
+
+    open suspend fun deleteTask(task: Task, userId: String): Boolean = withContext(Dispatchers.IO) {
+        val taskRef = tasksCollection.document(task.taskId)
+        database.runTransaction { transaction ->
+            transaction.delete(taskRef)
+        }.get()
+
+        return@withContext true
     }
 }

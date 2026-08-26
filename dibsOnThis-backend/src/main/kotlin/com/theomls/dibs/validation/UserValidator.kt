@@ -1,7 +1,7 @@
 package com.theomls.dibs.validation
 
 import com.theomls.dibs.models.*
-import com.theomls.dibs.utils.ValidationUtils
+import com.theomls.dibs.utils.validateString
 
 object UserValidator {
     
@@ -12,7 +12,7 @@ object UserValidator {
      * Returns a [ValidationResult] containing either the sanitized request or an error message.
      */
     fun validateCreateUser(request: CreateUserRequest): ValidationResult<CreateUserRequest> {
-        val nameResult = ValidationUtils.validateString(
+        val nameResult = validateString(
             request.username,
             UserConstants.MIN_USERNAME_LENGTH,
             UserConstants.MAX_USERNAME_LENGTH,
@@ -22,9 +22,8 @@ object UserValidator {
 
         val cleanEmail = request.email.trim().lowercase()
 
-        if (!EMAIL_REGEX.matches(cleanEmail)) {
+        if (!EMAIL_REGEX.matches(cleanEmail))
             return ValidationResult.Failure("Invalid email format")
-        }
 
         return ValidationResult.Success(
             request.copy(

@@ -3,6 +3,7 @@ package com.theomls.dibs.services
 import com.theomls.dibs.models.*
 import com.theomls.dibs.repositories.GroupRepository
 import com.theomls.dibs.repositories.UserRepository
+import com.theomls.dibs.utils.checkUserIsMemberOfGroup
 import com.theomls.dibs.utils.generateUnique
 import com.theomls.dibs.validation.GroupValidator
 import com.theomls.dibs.validation.ValidationResult
@@ -30,6 +31,11 @@ class GroupService(
             is ValidationResult.Success -> validation.value
             is ValidationResult.Failure -> throw IllegalArgumentException(validation.message)
         }
+
+        val user = userRepository.fetchUserOrThrow(userId)
+
+        if (user.groupIds.size >= UserConstants.MAX_GROUP_MEMBERSHIPS)
+            throw IllegalArgumentException("User cannot join more than ${UserConstants.MAX_GROUP_MEMBERSHIPS} groups.")
 
         val groupId = generateUnique(
             generator = { UUID.randomUUID().toString() },
@@ -61,14 +67,32 @@ class GroupService(
             is ValidationResult.Failure -> throw IllegalArgumentException(validation.message)
         }
 
+        val user = userRepository.fetchUserOrThrow(userId)
         val group = groupRepository.getGroupByInviteCode(cleanRequest.inviteCode)
             ?: throw NotFoundException("Group not found with invite code: ${cleanRequest.inviteCode}")
 
-        return groupRepository.addMemberToGroup(group.groupId, userId)
+        if (group.memberIds.contains(userId))
+            return group
+
+        if (user.groupIds.contains(group.groupId))
+            throw IllegalArgumentException("User is already a member of this group.")
+
+        if (user.groupIds.size >= UserConstants.MAX_GROUP_MEMBERSHIPS)
+            throw IllegalArgumentException("User cannot join more than ${UserConstants.MAX_GROUP_MEMBERSHIPS} groups.")
+
+        if (group.memberIds.size >= group.maxGroupSize)
+            throw IllegalArgumentException("Group is full.")
+
+        return groupRepository.addMemberToGroup(group, user)
     }
 
     suspend fun leaveGroup(userId: String, groupId: String): LeaveGroupResponse {
-        val groupWasDeleted = groupRepository.removeMemberFromGroup(groupId, userId)
+        val group = groupRepository.fetchGroupOrThrow(groupId)
+        val user = userRepository.fetchUserOrThrow(userId)
+
+        checkUserIsMemberOfGroup(userId, group)
+
+        val groupWasDeleted = groupRepository.removeMemberFromGroup(group, user)
 
         return LeaveGroupResponse(
             groupId = groupId,
@@ -77,12 +101,9 @@ class GroupService(
     }
 
     suspend fun getGroupById(userId: String, groupId: String): Group {
-        val group = groupRepository.getGroupById(groupId)
-            ?: throw NotFoundException("Group not found with ID: $groupId")
+        val group = groupRepository.fetchGroupOrThrow(groupId)
 
-        if (!group.memberIds.contains(userId)) {
-            throw IllegalArgumentException("User is not a member of this group")
-        }
+        checkUserIsMemberOfGroup(userId, group)
 
         return group
     }

@@ -28,7 +28,10 @@ class GroupServiceTest {
     private class MockUserRepository : UserRepository(dummyDb) {
         override val database: com.google.cloud.firestore.Firestore get() = dummyDb
         var userExists = true
+        var userToReturn: User? = User(userId = "user123", username = "testuser", email = "test@example.com")
         override suspend fun existsById(id: String): Boolean = userExists
+        override suspend fun getUserById(id: String): User? = if (userExists) userToReturn else null
+        override suspend fun fetchUserOrThrow(id: String): User = getUserById(id) ?: throw NotFoundException("User does not exist")
     }
 
     private class MockGroupRepository : GroupRepository(dummyDb) {
@@ -37,32 +40,31 @@ class GroupServiceTest {
         override val usersCollection: com.google.cloud.firestore.CollectionReference get() = throw UnsupportedOperationException("Mocked")
         
         var groupExistsById = false
-        var userExistsById = true
         var groupExistsByInviteCode = false
         var createdGroup: Group? = null
         var memberAddedGroup: Group? = null
         var groupToReturnByInviteCode: Group? = null
+        var groupToReturnById: Group? = null
         var groupDeleted = false
 
         override suspend fun existsById(groupId: String): Boolean = groupExistsById
         override suspend fun existsByInviteCode(inviteCode: String): Boolean = groupExistsByInviteCode
         
         override suspend fun saveGroup(group: Group, userId: String): Group {
-            if (!userExistsById) throw IllegalArgumentException("User does not exist")
             createdGroup = group
             return group
         }
         
         override suspend fun getGroupByInviteCode(inviteCode: String): Group? = groupToReturnByInviteCode
+        override suspend fun getGroupById(groupId: String): Group? = groupToReturnById
         
-        override suspend fun addMemberToGroup(groupId: String, userId: String): Group {
-            if (!userExistsById) throw IllegalArgumentException("User does not exist")
+        override suspend fun fetchGroupOrThrow(groupId: String): Group = getGroupById(groupId) ?: throw NotFoundException("Group not found with ID: $groupId")
+        
+        override suspend fun addMemberToGroup(group: Group, user: User): Group {
             return memberAddedGroup ?: throw IllegalArgumentException("Group does not exist")
         }
 
-        override suspend fun removeMemberFromGroup(groupId: String, userId: String): Boolean {
-            if (!userExistsById) throw IllegalArgumentException("User does not exist")
-            if (!groupExistsById) throw NotFoundException("Group does not exist")
+        override suspend fun removeMemberFromGroup(group: Group, user: User): Boolean {
             return groupDeleted
         }
     }
@@ -95,10 +97,10 @@ class GroupServiceTest {
     @Test
     fun `createGroup should throw if user does not exist`() {
         runBlocking {
-            mockGroupRepo.userExistsById = false
+            mockUserRepo.userExists = false
             val request = CreateGroupRequest(name = "New Group")
 
-            assertFailsWith<IllegalArgumentException> {
+            assertFailsWith<NotFoundException> {
                 groupService.createGroup("invalid-user", request)
             }
         }
@@ -135,9 +137,23 @@ class GroupServiceTest {
         runBlocking {
             val userId = "user123"
             val groupId = "non-existent-group"
-            mockGroupRepo.groupExistsById = false
+            mockGroupRepo.groupToReturnById = null
 
             assertFailsWith<NotFoundException> {
+                groupService.leaveGroup(userId, groupId)
+            }
+        }
+    }
+
+    @Test
+    fun `leaveGroup should throw if user is not a member`() {
+        runBlocking {
+            val userId = "user123"
+            val groupId = "group123"
+            val group = Group(groupId = groupId, memberIds = listOf("otherUser"))
+            mockGroupRepo.groupToReturnById = group
+
+            assertFailsWith<IllegalArgumentException> {
                 groupService.leaveGroup(userId, groupId)
             }
         }

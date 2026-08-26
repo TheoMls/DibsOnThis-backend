@@ -5,7 +5,6 @@ import com.theomls.dibs.models.User
 import com.theomls.dibs.repositories.UserRepository
 import com.theomls.dibs.validation.UserValidator
 import com.theomls.dibs.validation.ValidationResult
-import io.ktor.server.plugins.NotFoundException
 
 class UserService(private val userRepository: UserRepository) {
 
@@ -17,25 +16,22 @@ class UserService(private val userRepository: UserRepository) {
             is ValidationResult.Failure -> throw IllegalArgumentException(validation.message)
         }
 
-        if (userRepository.existsById(userId)) {
+        if (userRepository.existsById(userId))
             throw IllegalArgumentException("User profile already exists!")
-        }
         
         // Combine clean input with server rules (points = 0, current timestamp)
         val newUser = User(
-            id = userId,
+            userId = userId,
             username = cleanRequest.username,
             email = cleanRequest.email,
             totalPoints = 0,
             groupIds = emptyList(),
-            createdAt = System.currentTimeMillis()
         )
 
         return userRepository.saveUser(newUser)
     }
 
     suspend fun getUserById(userId: String): User {
-        return userRepository.getUserById(userId)
-            ?: throw NotFoundException("User does not exist")
+        return userRepository.fetchUserOrThrow(userId)
     }
 }

@@ -1,8 +1,6 @@
 package com.theomls.dibs.services
-
-import com.theomls.dibs.models.CreateTaskRequest
+import com.theomls.dibs.models.*
 import com.theomls.dibs.models.Task
-import com.theomls.dibs.models.TaskConstants
 import com.theomls.dibs.repositories.GroupRepository
 import com.theomls.dibs.repositories.TaskRepository
 import com.theomls.dibs.repositories.UserRepository
@@ -38,7 +36,7 @@ class TaskServiceTest {
 
         override suspend fun existsById(taskId: String): Boolean = taskExists
 
-        override suspend fun saveTask(newTask: Task, userId: String): Task {
+        override suspend fun saveTask(newTask: Task): Task {
             if (shouldFailSave) {
                 throw IllegalArgumentException(failureMessage)
             }
@@ -51,19 +49,27 @@ class TaskServiceTest {
 
         var taskToReturn: Task? = null
         override suspend fun getTaskById(taskId: String): Task? = taskToReturn
+        
+        override suspend fun fetchTaskOrThrow(taskId: String): Task = getTaskById(taskId) ?: throw io.ktor.server.plugins.NotFoundException("Task not found")
     }
 
     private class MockGroupRepository : GroupRepository(dummyDb) {
         override val groupsCollection: com.google.cloud.firestore.CollectionReference get() = throw UnsupportedOperationException("Mocked")
         override val usersCollection: com.google.cloud.firestore.CollectionReference get() = throw UnsupportedOperationException("Mocked")
 
-        var groupToReturn: com.theomls.dibs.models.Group? = null
+        var groupToReturn: Group? = null
 
-        override suspend fun getGroupById(groupId: String): com.theomls.dibs.models.Group? = groupToReturn
+        override suspend fun getGroupById(groupId: String): Group? = groupToReturn
+        
+        override suspend fun fetchGroupOrThrow(groupId: String): Group = getGroupById(groupId) ?: throw io.ktor.server.plugins.NotFoundException("Group not found")
     }
 
     private class MockUserRepository : UserRepository(dummyDb) {
         override val database: com.google.cloud.firestore.Firestore get() = dummyDb
+        var userExists = true
+        override suspend fun existsById(id: String): Boolean = userExists
+        
+        override suspend fun fetchUserOrThrow(id: String): User = if (userExists) User(userId = id) else throw io.ktor.server.plugins.NotFoundException("User does not exist")
     }
 
     private lateinit var taskService: TaskService
@@ -85,6 +91,8 @@ class TaskServiceTest {
             val userId = "user123"
             val groupId = "group123"
             val request = CreateTaskRequest(title = "Test Task", description = "Test Description")
+            
+            mockGroupRepo.groupToReturn = Group(groupId = groupId, memberIds = listOf(userId))
 
             val result = taskService.createTask(userId, groupId, request)
 
@@ -118,6 +126,7 @@ class TaskServiceTest {
             val groupId = "group123"
             val request = CreateTaskRequest(title = "Test Task")
 
+            mockGroupRepo.groupToReturn = Group(groupId = groupId, memberIds = listOf(userId))
             mockTaskRepo.shouldFailSave = true
             mockTaskRepo.failureMessage = "User is not a member of this group"
 
@@ -133,7 +142,7 @@ class TaskServiceTest {
         runBlocking {
             val userId = "user1"
             val groupId = "group1"
-            val group = com.theomls.dibs.models.Group(groupId = groupId, memberIds = listOf(userId))
+            val group = Group(groupId = groupId, memberIds = listOf(userId))
             val tasks = listOf(Task(taskId = "task1", groupId = groupId))
 
             mockGroupRepo.groupToReturn = group
@@ -150,7 +159,7 @@ class TaskServiceTest {
         runBlocking {
             val userId = "user1"
             val groupId = "group1"
-            val group = com.theomls.dibs.models.Group(groupId = groupId, memberIds = listOf("otherUser"))
+            val group = Group(groupId = groupId, memberIds = listOf("otherUser"))
 
             mockGroupRepo.groupToReturn = group
 
@@ -168,7 +177,7 @@ class TaskServiceTest {
             val groupId = "group1"
             val taskId = "task1"
             val task = Task(taskId = taskId, groupId = groupId)
-            val group = com.theomls.dibs.models.Group(groupId = groupId, memberIds = listOf(userId))
+            val group = Group(groupId = groupId, memberIds = listOf(userId))
 
             mockTaskRepo.taskToReturn = task
             mockGroupRepo.groupToReturn = group
@@ -186,7 +195,7 @@ class TaskServiceTest {
             val groupId = "group1"
             val taskId = "task1"
             val task = Task(taskId = taskId, groupId = groupId)
-            val group = com.theomls.dibs.models.Group(groupId = groupId, memberIds = listOf("otherUser"))
+            val group = Group(groupId = groupId, memberIds = listOf("otherUser"))
 
             mockTaskRepo.taskToReturn = task
             mockGroupRepo.groupToReturn = group

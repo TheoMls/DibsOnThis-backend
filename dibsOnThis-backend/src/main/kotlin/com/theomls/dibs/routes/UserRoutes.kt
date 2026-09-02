@@ -14,7 +14,7 @@ fun Route.userRoutes(userService: UserService) {
     // Create user
     post("/users") {
         val request = call.receive<CreateUserRequest>()
-        val userId = call.requireUserId(true)
+        val userId = call.requireUserId()
 
         val createdUser = userService.createUser(userId, request)
         call.respond(HttpStatusCode.Created, createdUser)
@@ -22,7 +22,7 @@ fun Route.userRoutes(userService: UserService) {
 
     // Get current user
     get("/users/me") {
-        val userId = call.requireUserId(true)
+        val userId = call.requireUserId()
 
         val user = userService.getUserById(userId)
         call.respond(HttpStatusCode.OK, user)

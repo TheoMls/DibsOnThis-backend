@@ -10,7 +10,6 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
 fun Route.groupRoutes(groupService: GroupService) {
-
     // Create group
     post("/groups") {
         val request = call.receive<CreateGroupRequest>()
@@ -30,11 +29,11 @@ fun Route.groupRoutes(groupService: GroupService) {
     }
 
     // Leave group
-    post("/groups/{groupId}/leave") {
+    delete("/groups/{groupId}") {
         val groupId = call.parameters["groupId"]
             ?: throw IllegalArgumentException("Missing group id")
 
-        val userId = call.requireUserId(true)
+        val userId = call.requireUserId()
 
         val response = groupService.leaveGroup(userId, groupId)
         call.respond(HttpStatusCode.OK, response)
@@ -45,9 +44,9 @@ fun Route.groupRoutes(groupService: GroupService) {
         val groupId = call.parameters["groupId"]
             ?: throw IllegalArgumentException("Missing group id")
 
-        val userId = call.requireUserId(true)
+        val userId = call.requireUserId()
 
-        val group = groupService.getGroupById(groupId, userId)
+        val group = groupService.getGroupById(userId, groupId)
         call.respond(HttpStatusCode.OK, group)
     }
 }

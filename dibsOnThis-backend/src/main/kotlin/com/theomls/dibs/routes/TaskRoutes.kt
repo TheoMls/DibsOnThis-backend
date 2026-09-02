@@ -9,14 +9,13 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.*
 
 fun Route.taskRoutes(taskService: TaskService) {
-
     // Create task
     post("/groups/{groupId}/tasks") {
         val request = call.receive<CreateTaskRequest>()
 
         val groupId = call.parameters["groupId"]
         ?: throw IllegalArgumentException("Missing group id")
-        val userId = call.requireUserId(true)
+        val userId = call.requireUserId()
 
         val createdTask = taskService.createTask(userId, groupId, request)
         call.respond(HttpStatusCode.Created, createdTask)
@@ -26,7 +25,7 @@ fun Route.taskRoutes(taskService: TaskService) {
     get("/groups/{groupId}/tasks") {
         val groupId = call.parameters["groupId"]
         ?: throw IllegalArgumentException("Missing group id")
-        val userId = call.requireUserId(true)
+        val userId = call.requireUserId()
 
         val tasks = taskService.getTasksByGroupId(userId, groupId)
         call.respond(HttpStatusCode.OK, tasks)
@@ -36,7 +35,7 @@ fun Route.taskRoutes(taskService: TaskService) {
     get("/tasks/{taskId}") {
         val taskId = call.parameters["taskId"]
             ?: throw IllegalArgumentException("Missing task id")
-        val userId = call.requireUserId(true)
+        val userId = call.requireUserId()
 
         val task = taskService.getTaskById(userId, taskId)
         call.respond(HttpStatusCode.OK, task)
@@ -46,7 +45,7 @@ fun Route.taskRoutes(taskService: TaskService) {
     post("/tasks/{taskId}/claim") {
         val taskId = call.parameters["taskId"]
             ?: throw IllegalArgumentException("Missing task id")
-        val userId = call.requireUserId(true)
+        val userId = call.requireUserId()
 
         val claimedTask = taskService.claimTask(userId, taskId)
         call.respond(HttpStatusCode.OK, claimedTask)
@@ -56,7 +55,7 @@ fun Route.taskRoutes(taskService: TaskService) {
     post("/tasks/{taskId}/complete") {
         val taskId = call.parameters["taskId"]
         ?: throw IllegalArgumentException("Missing task id")
-        val userId = call.requireUserId(true)
+        val userId = call.requireUserId()
 
         val claimedTask = taskService.completeTask(userId, taskId)
         call.respond(HttpStatusCode.OK, claimedTask)
@@ -66,7 +65,7 @@ fun Route.taskRoutes(taskService: TaskService) {
     post("/tasks/{taskId}/unclaim") {
         val taskId = call.parameters["taskId"]
             ?: throw IllegalArgumentException("Missing task id")
-        val userId = call.requireUserId(true)
+        val userId = call.requireUserId()
 
         val claimedTask = taskService.unclaimTask(userId, taskId)
         call.respond(HttpStatusCode.OK, claimedTask)
@@ -76,7 +75,7 @@ fun Route.taskRoutes(taskService: TaskService) {
     delete("/tasks/{taskId}") {
         val taskId = call.parameters["taskId"]
             ?: throw IllegalArgumentException("Missing task id")
-        val userId = call.requireUserId(true)
+        val userId = call.requireUserId()
 
         taskService.deleteTask(userId, taskId)
         call.respond(HttpStatusCode.OK)

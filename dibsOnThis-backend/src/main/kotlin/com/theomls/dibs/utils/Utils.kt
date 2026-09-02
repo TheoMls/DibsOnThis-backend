@@ -7,8 +7,8 @@ import io.ktor.server.application.ApplicationCall
 import io.ktor.server.auth.principal
 
 // Auth Utilities
-fun ApplicationCall.requireUserId(test: Boolean = false): String {
-    if (test) return "test-user-1"
+fun ApplicationCall.requireUserId(test: Boolean = true): String {
+    if (test) return "test_user_1"
     return principal<FirebaseUserPrincipal>()?.uid
         ?: throw IllegalStateException("Unauthorized")
 }

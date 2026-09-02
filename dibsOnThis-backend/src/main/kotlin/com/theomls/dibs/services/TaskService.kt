@@ -122,4 +122,20 @@ class TaskService(
 
         taskRepository.deleteTask(task, userId)
     }
+
+    suspend fun updateTaskStatus(userId: String, taskId: String, request: ChangeTaskStatusRequest): Task {
+        val validation = TaskValidator.validateChangeTaskStatus(request)
+        val cleanRequest = when (validation) {
+            is ValidationResult.Success -> validation.value
+            is ValidationResult.Failure -> throw IllegalArgumentException(validation.message)
+        }
+
+        val targetStatus = TaskStatus.valueOf(cleanRequest.status)
+
+        return when (targetStatus) {
+            TaskStatus.CLAIMED -> claimTask(userId, taskId)
+            TaskStatus.COMPLETED -> completeTask(userId, taskId)
+            TaskStatus.OPEN -> unclaimTask(userId, taskId)
+        }
+    }
 }

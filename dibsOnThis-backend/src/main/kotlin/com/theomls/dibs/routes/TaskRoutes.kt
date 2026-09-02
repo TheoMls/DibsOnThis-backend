@@ -3,7 +3,6 @@ package com.theomls.dibs.routes
 import com.theomls.dibs.models.ChangeTaskStatusRequest
 import com.theomls.dibs.utils.requireUserId
 import com.theomls.dibs.models.CreateTaskRequest
-import com.theomls.dibs.models.TaskStatus
 import com.theomls.dibs.services.TaskService
 import io.ktor.http.*
 import io.ktor.server.request.*
@@ -43,51 +42,16 @@ fun Route.taskRoutes(taskService: TaskService) {
         call.respond(HttpStatusCode.OK, task)
     }
 
-    // Claim task
-    post("/tasks/{taskId}/claim") {
-        val taskId = call.parameters["taskId"]
-            ?: throw IllegalArgumentException("Missing task id")
-        val userId = call.requireUserId()
-
-        val claimedTask = taskService.claimTask(userId, taskId)
-        call.respond(HttpStatusCode.OK, claimedTask)
-    }
-
-    // Complete task
-    post("/tasks/{taskId}/complete") {
-        val taskId = call.parameters["taskId"]
-        ?: throw IllegalArgumentException("Missing task id")
-        val userId = call.requireUserId()
-
-        val claimedTask = taskService.completeTask(userId, taskId)
-        call.respond(HttpStatusCode.OK, claimedTask)
-    }
-
-    // Unclaim task
-    post("/tasks/{taskId}/unclaim") {
-        val taskId = call.parameters["taskId"]
-            ?: throw IllegalArgumentException("Missing task id")
-        val userId = call.requireUserId()
-
-        val claimedTask = taskService.unclaimTask(userId, taskId)
-        call.respond(HttpStatusCode.OK, claimedTask)
-    }
-
     // Update task status
     patch("/tasks/{taskId}") {
         val request = call.receive<ChangeTaskStatusRequest>()
 
-
         val taskId = call.parameters["taskId"]
             ?: throw IllegalArgumentException("Missing task id")
         val userId = call.requireUserId()
 
-        when (request.status) {
-            TaskStatus.CLAIMED -> taskService.claimTask(userId, taskId)
-            TaskStatus.COMPLETED -> taskService.completeTask(userId, taskId)
-            TaskStatus.OPEN -> taskService.unclaimTask(userId, taskId)
-        }
-        call.respond(HttpStatusCode.OK)
+        val updatedTask = taskService.updateTaskStatus(userId, taskId, request)
+        call.respond(HttpStatusCode.OK, updatedTask)
     }
 
     // Delete task

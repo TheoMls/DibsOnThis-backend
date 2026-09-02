@@ -32,4 +32,20 @@ object TaskValidator {
             )
         )
     }
+
+    fun validateChangeTaskStatus(request: ChangeTaskStatusRequest): ValidationResult<ChangeTaskStatusRequest> {
+        val statusValues = TaskStatus.entries.toTypedArray()
+        val validatedStatus = validateString(
+            request.status.uppercase(),
+            0, TaskConstants.MAX_STATUS_LENGTH,
+            "Task Status"
+        )
+        if (validatedStatus is ValidationResult.Failure) return validatedStatus
+        val status = (validatedStatus as ValidationResult.Success).value
+
+        if (status !in statusValues.map { it.name })
+            return ValidationResult.Failure("Invalid status value.")
+
+        return ValidationResult.Success(request.copy(status = status))
+    }
 }

@@ -62,7 +62,7 @@ fun Route.taskRoutes(taskService: TaskService) {
         call.respond(HttpStatusCode.OK, claimedTask)
     }
 
-    // Unclaim Task
+    // Unclaim task
     post("/tasks/{taskId}/unclaim") {
         val taskId = call.parameters["taskId"]
             ?: throw IllegalArgumentException("Missing task id")
@@ -72,7 +72,7 @@ fun Route.taskRoutes(taskService: TaskService) {
         call.respond(HttpStatusCode.OK, claimedTask)
     }
 
-    // Delete Task
+    // Delete task
     delete("/tasks/{taskId}") {
         val taskId = call.parameters["taskId"]
             ?: throw IllegalArgumentException("Missing task id")

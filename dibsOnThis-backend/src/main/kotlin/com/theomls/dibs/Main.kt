@@ -1,5 +1,8 @@
 package com.theomls.dibs
 
+import com.theomls.dibs.application.configureFirebase
+import com.theomls.dibs.application.configureSerialization
+import com.theomls.dibs.application.configureStatusPages
 import com.theomls.dibs.auth.configureAuthentication
 import com.theomls.dibs.repositories.GroupRepository
 import com.theomls.dibs.repositories.TaskRepository
@@ -24,12 +27,14 @@ fun main(args: Array<String>) {
  * Ktor automatically calls this function when starting up due to application.yaml config.
  */
 fun Application.module() {
-    val firestore: com.google.cloud.firestore.Firestore = com.google.firebase.cloud.FirestoreClient.getFirestore()
-
-    // Configure Auth plugin
+    configureFirebase()
+    configureSerialization()
+    configureStatusPages()
     configureAuthentication()
 
-    // 2. Instantiate your Repository and Service layers down the chain
+    val firestore: com.google.cloud.firestore.Firestore = com.google.firebase.cloud.FirestoreClient.getFirestore()
+
+    // Instantiate Repository and Service layers
     val userRepository = UserRepository(firestore)
     val userService = UserService(userRepository)
 
@@ -39,14 +44,14 @@ fun Application.module() {
     val taskRepository = TaskRepository(firestore)
     val taskService = TaskService(taskRepository, groupRepository, userRepository)
 
-    // 3. Register your routes into Ktor's routing engine
+    // Register routes into Ktor
     routing {
         get("/") { call.respondText("DibsOnThis Server Running!") }
 
-        authenticate ("firebase-auth") {
+        //authenticate ("firebase-auth") {
             userRoutes(userService)
             groupRoutes(groupService)
             taskRoutes(taskService)
-        }
+        //}
     }
 }

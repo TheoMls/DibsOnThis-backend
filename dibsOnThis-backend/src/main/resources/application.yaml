@@ -3,7 +3,4 @@ ktor:
     port: 8080
   application:
     modules:
-      - com.theomls.dibs.application.FirebaseKt.configureFirebase
-      - com.theomls.dibs.application.SerializationKt.configureSerialization
-      - com.theomls.dibs.application.StatusPagesKt.configureStatusPages
       - com.theomls.dibs.MainKt.module

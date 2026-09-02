@@ -30,6 +30,11 @@ data class CreateTaskRequest(
     val description: String = ""
 )
 
+@Serializable
+data class ChangeTaskStatusRequest(
+    val status: TaskStatus
+)
+
 // Constants
 object TaskConstants {
     const val MIN_TITLE_LENGTH = 3

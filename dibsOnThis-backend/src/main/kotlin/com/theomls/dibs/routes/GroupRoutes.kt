@@ -29,7 +29,7 @@ fun Route.groupRoutes(groupService: GroupService) {
     }
 
     // Leave group
-    delete("/groups/{groupId}") {
+    post("/groups/{groupId}/leave") {
         val groupId = call.parameters["groupId"]
             ?: throw IllegalArgumentException("Missing group id")
 

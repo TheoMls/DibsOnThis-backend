@@ -117,6 +117,9 @@ class TaskService(
         if (task.createdByUserId != userId)
             throw IllegalArgumentException("Only the creator can delete the task")
 
+        if (task.status == TaskStatus.COMPLETED)
+            throw IllegalArgumentException("Task is completed")
+
         taskRepository.deleteTask(task, userId)
     }
 }

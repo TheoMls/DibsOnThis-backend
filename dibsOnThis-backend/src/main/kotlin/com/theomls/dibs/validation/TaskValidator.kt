@@ -1,7 +1,9 @@
 package com.theomls.dibs.validation
 
+import com.theomls.dibs.models.ChangeTaskStatusRequest
 import com.theomls.dibs.models.CreateTaskRequest
 import com.theomls.dibs.models.TaskConstants
+import com.theomls.dibs.models.TaskStatus
 import com.theomls.dibs.utils.validateString
 
 object TaskValidator {

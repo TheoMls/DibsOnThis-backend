@@ -1,7 +1,9 @@
 package com.theomls.dibs.routes
 
+import com.theomls.dibs.models.ChangeTaskStatusRequest
 import com.theomls.dibs.utils.requireUserId
 import com.theomls.dibs.models.CreateTaskRequest
+import com.theomls.dibs.models.TaskStatus
 import com.theomls.dibs.services.TaskService
 import io.ktor.http.*
 import io.ktor.server.request.*
@@ -69,6 +71,23 @@ fun Route.taskRoutes(taskService: TaskService) {
 
         val claimedTask = taskService.unclaimTask(userId, taskId)
         call.respond(HttpStatusCode.OK, claimedTask)
+    }
+
+    // Update task status
+    patch("/tasks/{taskId}") {
+        val request = call.receive<ChangeTaskStatusRequest>()
+
+
+        val taskId = call.parameters["taskId"]
+            ?: throw IllegalArgumentException("Missing task id")
+        val userId = call.requireUserId()
+
+        when (request.status) {
+            TaskStatus.CLAIMED -> taskService.claimTask(userId, taskId)
+            TaskStatus.COMPLETED -> taskService.completeTask(userId, taskId)
+            TaskStatus.OPEN -> taskService.unclaimTask(userId, taskId)
+        }
+        call.respond(HttpStatusCode.OK)
     }
 
     // Delete task
